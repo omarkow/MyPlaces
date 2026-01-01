@@ -20,19 +20,25 @@ if (typeof mapboxgl === "undefined") {
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
     async function checkUserSession() {
-        const {
-            data: { session },
-        } = await supabaseClient.auth.getSession();
+        const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
             currentUser = session.user;
-            if (currentUser.email === "admin@test.com") {
-                currentUser.role = roles.ADMIN;
+            const { data: roleRows, error: roleError } = await supabaseClient
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+            if (!roleError && roleRows && roleRows.role) {
+                currentUser.role = roleRows.role;
+            } else {
+                currentUser.role = roles.USER;
             }
-        }
-        updateUIForRole();
-    }
+         } else { currentUser = null}
 
-    checkUserSession();
+        updateUIForRole();
+}
+
+checkUserSession();
 
     // 2. CARTE MAPBOX
     mapboxgl.accessToken =
@@ -560,9 +566,11 @@ if (typeof mapboxgl === "undefined") {
 
     async function logout() {
         await supabaseClient.auth.signOut();
-        location.reload();
+        currentUser = null;          // on vide l’utilisateur
+        updateUIForRole();           // on met l’UI à jour
+        location.reload();           // et on force un vrai reset
     }
-
+    
     // 7. EVENTS (Lightbox, etc.)
     document.getElementById("close-panel").onclick = () => {
         const sidePanel = document.getElementById("side-panel");
@@ -635,11 +643,8 @@ if (typeof mapboxgl === "undefined") {
         }
     });
 
-    const loginBtn = document.querySelector(".btn-login");
-    loginBtn.onclick = () =>
-        (document.getElementById("login-modal").style.display = "flex");
     document.getElementById("close-login").onclick = () =>
-        (document.getElementById("login-modal").style.display = "none");
+    (document.getElementById("login-modal").style.display = "none");
 
     // 8. FILTRES CATÉGORIES
 function appliquerFiltres() {
