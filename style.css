@@ -1,0 +1,754 @@
+/* ==========================================================================
+   1. VARIABLES DE DESIGN (SYSTÈME UNIFIÉ)
+   ========================================================================== */
+:root {
+    --bg-color: #FDFBF7;
+    --nav-bg: rgba(253, 251, 247, 0.9);
+    --bg-panel: #ffffff;
+    --text-color: #333333;
+    --accent-color: #B8860B;
+    --card-bg: #FFFFFF;
+    --bg-button: #333333;
+    --text-button: #ffffff;
+}
+
+/* ==========================================================================
+   2. STYLES GÉNÉRAUX
+   ========================================================================== */
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.5s ease, color 0.5s ease;
+    /* overflow: hidden; */
+}
+
+/* ==========================================================================
+   3. NAVBAR ET BOUTONS (ICÔNE SEULE)
+   ========================================================================== */
+.navbar {
+    position: relative;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    background: var(--nav-bg);
+    backdrop-filter: blur(10px);
+    z-index: 2500; 
+    border-bottom: 1px solid rgba(184, 134, 11, 0.2);
+    box-sizing: border-box;
+}
+
+.nav-controls {
+    display: flex;         /* Aligne les boutons sur une ligne */
+    align-items: center;   /* Les centre verticalement l'un par rapport à l'autre */
+    gap: 8px;             /* Espace précis entre les deux boutons */
+    margin-left: auto;     /* Pousse le groupe vers la droite de la navbar */
+}
+
+/* On retire toute position "fixed" ou "absolute" qui pourrait rester sur les boutons */
+#theme-toggle, .btn-login {
+    position: static; 
+}
+
+/* ==========================================================================
+   4. CARTE ET MARQUEURS (CRUCIAL POUR LES POINTS)
+   ========================================================================== */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+#map-container {
+    width: 100vw;   /* Toute la largeur de l'écran */
+    height: 100vh;  /* Toute la hauteur de l'écran */
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;     /* Pour rester derrière la navbar et le panel */
+}
+/* Assurez-vous que vos marqueurs ont ce style */
+.marker {
+    width: 20px;
+    height: 20px;
+    background-color: var(--accent-color);
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    z-index: 500; /* Force les points à être au-dessus du fond de carte */
+}
+
+.marker-point {
+    width: 12px;
+    height: 12px;
+    background-color: var(--accent-color);
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(0,0,0,0.4);
+    transition: transform 0.2s;
+}
+
+.marker-point:hover {
+    transform: scale(1.5);
+    background-color: #ff4500; /* Change de couleur au survol */
+}
+
+.mapboxgl-marker {
+    width: 15px !important;
+    height: 15px !important;
+}
+
+/* ==========================================================================
+   5. PANNEAU LATÉRAL ET BOUTON +
+   ========================================================================== */
+#side-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 80vw;           /* 80% de la largeur de l'écran */
+    height: 100vh;
+    background: var(--bg-panel);
+    color: var(--text-color);
+    box-shadow: -15px 0 50px rgba(0,0,0,0.3);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); /* Animation plus noble */
+    z-index: 3000;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-content {
+    padding: 100px 60px 60px 60px; /* Plus d'espace en haut et sur les côtés */
+    max-width: 1200px;             /* On limite la largeur du texte pour la lisibilité */
+    margin: 0 auto;                /* On centre le contenu dans le grand panneau */
+}
+
+.panel-hidden { 
+    transform: translateX(100%); 
+    /* Important : Empêche le panneau caché de bloquer les clics sur la carte */
+    visibility: hidden; 
+}
+
+/* Espacement du titre et de la description */
+#panel-title {
+    font-size: 2.5rem;
+    margin-top: 0; /* Évite un trop grand vide en haut */
+    color: var(--accent-color);
+}
+
+#panel-description {
+    font-size: 1.2rem;
+    line-height: 1.8;
+    margin-bottom: 30px;
+    text-align: justify;
+}
+
+/* La ligne de séparation */
+.separator {
+    border: 0;
+    border-top: 1px solid var(--accent-color);
+    margin: 40px 0;
+    opacity: 0.3;
+}
+
+/* On s'assure que la grille de photos respire bien en dessous */
+#preview-thumbnails img, .panel-img {
+    width: 80px !important;
+    height: 80px !important;
+    object-fit: cover;
+    border-radius: 5px;
+    margin: 5px;
+    border: 1px solid #ddd;
+}
+
+#panel-image-container img {
+    width: 100%; /* La photo dans le panneau final prend toute la largeur */
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.panel-img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover; /* Recadre l'image dans le carré */
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.panel-img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* --- Style du Lecteur Plein Écran (Lightbox) --- */
+#lightbox {
+    display: none; /* Caché par défaut */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 5000; /* Au-dessus de tout */
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#lightbox-img {
+    max-width: 90%;
+    max-height: 80vh;
+    object-fit: contain; /* Proportions respectées */
+    border: 3px solid white;
+    border-radius: 4px;
+}
+
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: white;
+    font-size: 3rem;
+    cursor: pointer;
+    padding: 20px;
+    transition: color 0.3s;
+}
+
+.lightbox-nav:hover { color: var(--accent-color); }
+#prev-btn { left: 20px; }
+#next-btn { right: 20px; }
+
+#lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+/* Style du bouton de fermeture principal */
+.btn-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent; /* On enlève le fond coloré */
+    color: var(--text-color); /* On utilise la couleur du texte actuelle */
+    width: 40px;
+    height: 40px;
+    border: none;
+    font-size: 28px; /* Taille de la croix */
+    font-weight: 200; /* Croix plus fine si la police le permet */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5; /* Légèrement transparent par défaut */
+    transition: all 0.3s ease;
+    z-index: 3100;
+}
+
+.btn-close:hover {
+    opacity: 1; /* Devient opaque au survol */
+    transform: scale(1.1);
+    color: var(--accent-color); /* Change doucement vers l'or au survol */
+}
+
+#side-panel:not(.panel-hidden) ~ #map-container {
+    filter: grayscale(0.5) blur(2px);
+    transition: filter 0.5s ease;
+}
+
+.fab-add {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: 50%;
+    border: none;
+    font-size: 30px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+/* Modales */
+/* --- GESTION DES MODALES (IMPORTANT POUR LA CARTE) --- */
+.modal {
+    display: none; /* Cache la fenêtre par défaut pour libérer la carte */
+    position: fixed;
+    z-index: 5000; /* Très haut pour être au-dessus de tout */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Fond sombre transparent */
+    backdrop-filter: blur(5px); /* Floute la carte en arrière-plan */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Quand on ajoutera 'display: flex' via JS, la modale apparaîtra */
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--bg-panel);
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.modal-content.large {
+    max-width: 600px;
+}
+
+/* --- ÉLÉMENTS DE FORMULAIRE --- */
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid rgba(184, 134, 11, 0.3);
+    border-radius: 8px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    box-sizing: border-box; /* Évite que l'input dépasse */
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Cache l'input moche, stylise le label */
+.custom-file-upload {
+    display: inline-block;
+    padding: 10px 20px;
+    cursor: pointer;
+    background: #3498db;
+    color: white;
+    border-radius: 5px;
+    margin: 10px 0;
+    transition: background 0.3s;
+    font-weight: bold;
+}
+
+.custom-file-upload:hover {
+    background: #2980b9;
+}
+
+.custom-marker {
+    width: 15px; /* Taille réduite */
+    height: 15px;
+    background-color: var(--accent-color);
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+#upload-status {
+    font-size: 0.85em;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+}
+
+.mapboxgl-ctrl-top-left {
+    z-index: 100 !important;        /* En dessous navbar (2500) */
+    top: 90px !important;           /* Dessous navbar 70px + 20px marge */
+    left: 20px !important;
+}
+
+.mapboxgl-ctrl-geocoder {
+    z-index: 100 !important;
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    font-size: 14px !important;
+    width: 300px !important;
+}
+
+/* Responsive : mobiles */
+@media (max-width: 768px) {
+  .navbar {
+    height: 60px;
+    padding: 0 12px;
+  }
+
+  .nav-controls {
+    gap: 8px;
+  }
+
+  #map-container {
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+  }
+
+  #side-panel {
+    width: 100vw;
+  }
+
+  .panel-content {
+    padding: 80px 16px 40px 16px;
+  }
+
+  #panel-title {
+    font-size: 1.8rem;
+  }
+
+  #panel-description {
+    font-size: 1rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    max-width: none;
+    padding: 20px;
+  }
+
+  .fab-add {
+    bottom: 20px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
+    font-size: 26px;
+  }
+
+  .mapboxgl-ctrl-top-left {
+    top: 70px !important;
+    left: 10px !important;
+  }
+
+  .mapboxgl-ctrl-geocoder {
+    width: 80vw !important;
+    font-size: 13px !important;
+  }
+}
+
+/* Couleurs des marqueurs par catégorie */
+.marker--culte {
+    background-color: #B8860B; /* Or */
+}
+
+.marker--chateaux {
+    background-color: #8B4513; /* Marron château */
+}
+
+.marker--historique {
+    background-color: #1E90FF; /* Bleu historique */
+}
+
+.marker--panorama {
+    background-color: #228B22; /* Vert paysage */
+}
+
+.marker--plages {
+    background-color: #87CEEB; /* Bleu ciel plage */
+}
+
+.marker--autres {
+    background-color: #808080; /* Gris */
+}
+
+/* Panneau filtres catégories */
+.filters-panel {
+    position: absolute;
+    top: 70px;
+    right: 10px;
+    background: var(--bg-panel);
+    border: 1px solid rgba(184, 134, 11, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    min-width: 180px;
+    z-index: 2600;
+    font-size: 13px;
+}
+
+.filters-panel label {
+    display: block;
+    padding: 6px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(184, 134, 11, 0.05);
+    transition: background 0.2s;
+}
+
+.filters-panel label:hover {
+    background: rgba(184, 134, 11, 0.05);
+}
+
+.filters-panel label:last-child {
+    border-bottom: none;
+}
+
+.filters-panel input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.1);
+}
+
+.btn-filters {
+    position: relative;
+    transition: all 0.2s;
+}
+
+.btn-filters:hover {
+    background: var(--accent-color);
+    color: white !important;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .filters-panel {
+        right: 5px;
+        min-width: 160px;
+        font-size: 12px;
+    }
+}
+
+/* 🎨 FILTRES MODERNES ULTRA-PRO */
+.btn-filters-modern {
+    position: relative;
+    padding: 10px;
+    background: rgba(253, 251, 247, 0.9);
+    border: 1px solid rgba(184, 134, 11, 0.2);
+    border-radius: 12px;
+    color: var(--accent-color);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.btn-filters-modern:hover {
+    background: var(--accent-color);
+    color: white;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(184, 134, 11, 0.3);
+}
+
+.modern-filters-panel {
+    position: absolute;
+    top: 75px;
+    right: 10px;
+    width: 280px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.2);
+    border: 1px solid rgba(184, 134, 11, 0.1);
+    overflow: hidden;
+    z-index: 2600;
+    animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Inter', sans-serif;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.filters-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid rgba(184, 134, 11, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filters-header span {
+    font-size: 15px;
+    font-weight: 700;
+    color: #2d2d2d;
+    background: linear-gradient(135deg, var(--accent-color), #d4a017);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.btn-close-modern {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #999;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.btn-close-modern:hover {
+    color: var(--accent-color);
+    background: rgba(184, 134, 11, 0.1);
+    transform: scale(1.1);
+}
+
+.filters-grid {
+    padding: 16px 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 24px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    margin: 0 4px;
+}
+
+.filter-item:hover {
+    background: rgba(184, 134, 11, 0.05);
+    transform: translateX(4px);
+}
+
+.filter-item input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 2px solid #e5e7eb;
+    margin-right: 12px;
+    position: relative;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+/* Couleurs checkmarks par catégorie */
+.checkmark.culte { border-color: #B8860B; }
+.checkmark.chateaux { border-color: #8B4513; }
+.checkmark.historique { border-color: #1E90FF; }
+.checkmark.panorama { border-color: #228B22; }
+.checkmark.plages { border-color: #87CEEB; }
+.checkmark.autres { border-color: #808080; }
+
+.filter-item input:checked + .checkmark {
+    background: currentColor;
+    border-color: transparent;
+}
+
+.filter-item input:checked + .checkmark::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.filters-header span {
+    font-size: 13px; /* avant 15px */
+}
+
+.filter-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    flex: 1;
+}
+
+.filters-footer {
+    padding: 16px 24px 24px;
+    font-size: 12px;
+    border-top: 1px solid rgba(184, 134, 11, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-toggle-modern {
+    flex: 1;
+    padding: 11px 18px;
+    background: linear-gradient(135deg, var(--accent-color), #d4a017);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(184, 134, 11, 0.3);
+}
+
+.btn-toggle-modern:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(184, 134, 11, 0.4);
+}
+
+.filters-count {
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .modern-filters-panel {
+        right: 5px;
+        left: 5px;
+        width: auto;
+        top: 70px;
+    }
+    
+    .filters-grid {
+        max-height: 250px;
+    }
+}
+
+/* Bouton d'accès au filtre, version compacte */
+.btn-filters-modern {
+    padding: 4px 6px;          /* plus petit qu'avant */
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* Taille de l'icône à l'intérieur */
+.btn-filters-modern svg {
+    width: 14px;
+    height: 14px;
+}
