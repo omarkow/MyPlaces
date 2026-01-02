@@ -6,6 +6,15 @@ let currentIndex = 0;
 let geocoder = null;
 let tousLesMarqueurs = {}; // { id_edifice: { element, categorie } }
 
+const categorieLabels = {
+    'culte': 'Lieu de culte',
+    'chateaux': 'Châteaux, palais et demeures',
+    'historique': 'Sites historiques',
+    'panorama': 'Panorama et paysages',
+    'plages': 'Plages et côtes',
+    'autres': 'Autres'
+};
+
 console.log("🚀 Début script.js v2.0");
 
 if (typeof mapboxgl === "undefined") {
@@ -13,32 +22,52 @@ if (typeof mapboxgl === "undefined") {
 } else {
     console.log("✅ mapboxgl chargé");
 
-    const roles = { ADMIN: "admin", USER: "user" };
+    const roles = {
+        ADMIN: "admin",
+        USER: "user"
+    };
     const authorizedUsers = ["admin@test.com"];
     const supabaseUrl = "https://ihqktukhfgkdorlkksaj.supabase.co";
     const supabaseKey = "sb_publishable_K_gW-qcTXs3xq1l8jbQJgg_VgihdQ7l";
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
     async function checkUserSession() {
-        const { data: { session } } = await supabaseClient.auth.getSession();
+        console.log("🔍 checkUserSession appelé");
+        const {
+            data: {
+                session
+            }
+        } = await supabaseClient.auth.getSession();
         if (session) {
+            console.log("✅ Session trouvée", session.user.id);
             currentUser = session.user;
-            const { data: roleRows, error: roleError } = await supabaseClient
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', currentUser.id)
-            .maybeSingle();
+
+            const {
+                data: roleRows,
+                error: roleError
+            } = await supabaseClient
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', currentUser.id)
+                .maybeSingle();
+
             if (!roleError && roleRows && roleRows.role) {
                 currentUser.role = roleRows.role;
+                console.log("✅ Rôle récupéré :", currentUser.role);
             } else {
                 currentUser.role = roles.USER;
+                console.log("ℹ️ Rôle par défaut USER");
             }
-         } else { currentUser = null}
+        } else {
+            console.log("ℹ️ Pas de session");
+            currentUser = null;
+        }
 
+        console.log("🎯 Appel de updateUIForRole avec", currentUser);
         updateUIForRole();
-}
+    }
 
-checkUserSession();
+    checkUserSession();
 
     // 2. CARTE MAPBOX
     mapboxgl.accessToken =
@@ -84,16 +113,17 @@ checkUserSession();
             }, 100);
         });
 
-        if (currentUser && currentUser.role === roles.ADMIN) {
-            map.addControl(geocoder, "top-left");
-            console.log("✅ Geocoder visible pour l'admin");
-        } else {
-            console.log(
-                "🔒 Geocoder non visible (utilisateur non-admin ou déconnecté)"
-            );
-        }
+        // if (currentUser && currentUser.role === roles.ADMIN) {
+        //     map.addControl(geocoder, "top-left");
+        //     console.log("✅ Geocoder visible pour l'admin");
+        // } else {
+        //    console.log(
+        //        "🔒 Geocoder non visible (utilisateur non-admin ou déconnecté)"
+        //    );
+        //}
 
         loadEdifices();
+        updateUIForRole();
     });
 
     map.on("error", (e) => {
@@ -102,7 +132,10 @@ checkUserSession();
 
     // 3. CHARGEMENT & MARQUEURS
     async function loadEdifices() {
-        const { data, error } = await supabaseClient
+        const {
+            data,
+            error
+        } = await supabaseClient
             .from("edifices")
             .select("*");
         if (error) {
@@ -121,9 +154,8 @@ checkUserSession();
             if (edifice.lng && edifice.lat) {
                 creerMarqueur({
                     ...edifice,
-                    images: Array.isArray(edifice.images)
-                        ? edifice.images
-                        : [],
+                    images: Array.isArray(edifice.images) ?
+                        edifice.images : [],
                     coords: {
                         lng: parseFloat(edifice.lng),
                         lat: parseFloat(edifice.lat),
@@ -141,15 +173,21 @@ checkUserSession();
         const categorie = edifice.categorie || "autres";
         el.dataset.categorie = categorie;
 
-        const popup = new mapboxgl.Popup({ closeButton: false, offset: 25 });
+        const popup = new mapboxgl.Popup({
+            closeButton: false,
+            offset: 25
+        });
 
         new mapboxgl.Marker(el)
             .setLngLat([edifice.coords.lng, edifice.coords.lat])
             .addTo(map);
 
         if (edifice.id != null) {
-        tousLesMarqueurs[edifice.id] = { element: el, categorie };
-    }
+            tousLesMarqueurs[edifice.id] = {
+                element: el,
+                categorie
+            };
+        }
 
         el.addEventListener("mouseenter", () => {
             popup
@@ -187,13 +225,18 @@ checkUserSession();
             const compressedFile = await imageCompression(file, options);
             const fileName = `${Date.now()}_${file.name}`;
 
-            const { data, error } = await supabaseClient.storage
+            const {
+                data,
+                error
+            } = await supabaseClient.storage
                 .from("images-edifices")
                 .upload(fileName, compressedFile);
 
             if (error) throw error;
 
-            const { data: urlData } = supabaseClient.storage
+            const {
+                data: urlData
+            } = supabaseClient.storage
                 .from("images-edifices")
                 .getPublicUrl(fileName);
 
@@ -206,20 +249,44 @@ checkUserSession();
         }
     }
 
+    function populateFormFields(edificeData) {
+        if (!edificeData) {
+            console.log('Pas de données à peupler (nouveau édifice)');
+            return;
+        }
+
+        console.log('Peuplement des champs avec:', edificeData);
+
+        const nomInput = document.getElementById('edit-nom');
+        if (nomInput) nomInput.value = edificeData.nom || '';
+
+        const addrInput = document.getElementById('edit-adresse');
+        if (addrInput) addrInput.value = edificeData.adresse || '';
+
+        const cityInput = document.getElementById('edit-city');
+        if (cityInput) cityInput.value = edificeData.ville || '';
+
+        const descInput = document.getElementById('edit-desc');
+        if (descInput) descInput.value = edificeData.description || '';
+
+        const catSelect = document.getElementById('edit-categorie');
+        if (catSelect) catSelect.value = edificeData.categorie || 'autres';
+    }
+
+
     // 5. GESTION DES ÉDIFICES (FORMULAIRE + PANEL)
     function ouvrirFormulaireEdition(
         lng = null,
         lat = null,
         imagesExistantes = [],
-        id = null
+        id = null,
+        edificeData = null //
     ) {
         console.log("🎯 ouvrirFormulaireEdition reçu :");
         console.log("   imagesExistantes :", imagesExistantes);
         console.log("   id :", id);
 
-        tempExistingImages = Array.isArray(imagesExistantes)
-            ? [...imagesExistantes]
-            : [];
+        tempExistingImages = Array.isArray(imagesExistantes) ? [...imagesExistantes] : [];
         console.log(
             "   → tempExistingImages initialisé :",
             tempExistingImages
@@ -248,7 +315,7 @@ checkUserSession();
         ).innerHTML = `<div style="display: grid; gap: 20px;">
         <div>
             <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-color); opacity: 0.7;">Nom de l'édifice</label>
-            <input type="text" id="edit-nom" placeholder="Ex: Cathédrale de Chartres" class="form-input" style="width: 100%; padding: 12px 14px; border: 1px solid rgba(184, 134, 11, 0.2); border-radius: 6px; background: var(--bg-color); color: var(--text-color); font-size: 14px;">
+            <input type="text" id="edit-nom" placeholder="Nom" class="form-input" style="width: 100%; padding: 12px 14px; border: 1px solid rgba(184, 134, 11, 0.2); border-radius: 6px; background: var(--bg-color); color: var(--text-color); font-size: 14px;">
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div>
@@ -259,6 +326,17 @@ checkUserSession();
                 <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-color); opacity: 0.7;">Ville</label>
                 <input type="text" id="edit-city" placeholder="Ville" class="form-input" style="width: 100%; padding: 12px 14px; border: 1px solid rgba(184, 134, 11, 0.2); border-radius: 6px; background: var(--bg-color); color: var(--text-color); font-size: 14px;">
             </div>
+            <div>
+    <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-color); opacity: 0.7;">Catégorie</label>
+    <select id="edit-categorie" class="form-input" style="width: 100%; padding: 12px 14px; border: 1px solid rgba(184, 134, 11, 0.2); border-radius: 6px; background: var(--bg-color); color: var(--text-color); font-size: 14px;">
+        <option value="culte">Lieu de culte</option>
+        <option value="chateaux">Châteaux, palais et demeures</option>
+        <option value="historique">Sites historiques</option>
+        <option value="panorama">Panorama et paysages</option>
+        <option value="plages">Plages et côtes</option>
+        <option value="autres">Autres</option>
+    </select>
+</div>
         </div>
         <input type="hidden" id="edit-lng" value="${finalLng}">
         <input type="hidden" id="edit-lat" value="${finalLat}">
@@ -282,7 +360,7 @@ checkUserSession();
         <div id="upload-status" style="margin-top: 8px; font-size: 12px; color: var(--accent-color); min-height: 18px;"></div>
         <div id="preview-thumbnails" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;"></div>
     </div>`;
-
+        populateFormFields(edificeData);
         const fileLabel = document.getElementById("file-label");
         fileLabel.onmouseenter = () => {
             fileLabel.style.background = "rgba(184, 134, 11, 0.15)";
@@ -336,6 +414,14 @@ checkUserSession();
         document.getElementById("panel-title").innerText = edifice.nom;
         document.getElementById("panel-city").innerText =
             (edifice.adresse || "") + " " + (edifice.ville || "");
+        const categorieSpan = document.createElement('div');
+        categorieSpan.style.marginTop = '10px';
+        categorieSpan.style.fontSize = '14px';
+        categorieSpan.style.color = 'var(--accent-color)';
+        categorieSpan.style.fontWeight = '500';
+        const categorieLabel = categorieLabels[edifice.categorie] || 'Autres';
+        categorieSpan.textContent = 'Catégorie : ' + categorieLabel;
+        document.getElementById('panel-city').appendChild(categorieSpan);
         document.getElementById("panel-description").innerText =
             edifice.description || "";
 
@@ -358,21 +444,32 @@ checkUserSession();
             imgCont.innerHTML = "<p>Aucune photo trouvée.</p>";
         }
 
-        const adminControls = document.getElementById("admin-controls");
-        adminControls.innerHTML = "";
+        const adminControls = document.getElementById('admin-controls');
+        adminControls.innerHTML = '';
 
         if (currentUser?.role === roles.ADMIN) {
-            const bM = document.createElement("button");
-            bM.innerText = "Modifier";
-            bM.onclick = () => ouvrirFormulaireEdition(edifice.lng, edifice.lat, edifice.images, edifice.id);
+            const bM = document.createElement('button');
+            bM.innerText = 'Modifier';
 
-            const bS = document.createElement("button");
-            bS.innerText = "Supprimer";
-            bS.className = "btn-danger";
+            bM.onclick = () => {
+                console.log('→ Appel édition avec edifice :', edifice); // DEBUG
+                ouvrirFormulaireEdition(
+                    edifice.lng,
+                    edifice.lat,
+                    Array.isArray(edifice.images) ? edifice.images : [],
+                    edifice.id,
+                    edifice // << 5e paramètre, les données complètes
+                );
+            };
+
+            const bS = document.createElement('button');
+            bS.innerText = 'Supprimer';
+            bS.className = 'btn-danger';
             bS.onclick = () => supprimerEdifice(edifice.id);
 
             adminControls.append(bM, bS);
         }
+
 
         sidePanel.classList.remove("panel-hidden");
         sidePanel.style.visibility = "visible";
@@ -418,7 +515,9 @@ checkUserSession();
             categorie: document.getElementById("edit-categorie")?.value || "autres",
         };
 
-        const { error } = await supabaseClient
+        const {
+            error
+        } = await supabaseClient
             .from("edifices")
             .insert(nouvelEdifice);
 
@@ -460,7 +559,10 @@ checkUserSession();
 
         status.innerText = "💾 Mise à jour en cours...";
 
-        const { data, error } = await supabaseClient
+        const {
+            data,
+            error
+        } = await supabaseClient
             .from("edifices")
             .update({
                 nom: document.getElementById("edit-nom").value,
@@ -490,7 +592,9 @@ checkUserSession();
         );
         if (!confirmation) return;
 
-        const { error } = await supabaseClient
+        const {
+            error
+        } = await supabaseClient
             .from("edifices")
             .delete()
             .eq("id", id);
@@ -512,18 +616,15 @@ checkUserSession();
         if (!currentUser) {
             loginBtn.innerText = "Connexion";
             loginBtn.onclick = () =>
-                (document.getElementById("login-modal").style.display =
-                    "flex");
+                (document.getElementById("login-modal").style.display = "flex");
 
             if (adminAddButton) adminAddButton.classList.add("hidden");
 
+            // Cacher le geocoder sans le supprimer
             if (geocoder) {
-                const geocoderControl = document.querySelector(
-                    ".mapboxgl-ctrl-geocoder"
-                );
+                const geocoderControl = document.querySelector(".mapboxgl-ctrl-geocoder");
                 if (geocoderControl) geocoderControl.style.display = "none";
             }
-
             return;
         }
 
@@ -534,29 +635,36 @@ checkUserSession();
             if (adminAddButton) adminAddButton.classList.remove("hidden");
 
             if (geocoder) {
-                const geocoderControl = document.querySelector(
-                    ".mapboxgl-ctrl-geocoder"
-                );
-                if (geocoderControl) {
+                // ✅ CLÉE : ajouter le geocoder UNE SEULE FOIS
+                const geocoderControl = document.querySelector(".mapboxgl-ctrl-geocoder");
+                if (!geocoderControl) {
+                    // Le contrôle n'existe pas → on l'ajoute
+                    map.addControl(geocoder, "top-left");
+                    console.log("✅ Geocoder ajouté pour admin");
+                } else {
+                    // Le contrôle existe → on le montre juste
                     geocoderControl.style.display = "block";
-                    console.log("✅ Geocoder visible pour admin");
+                    console.log("✅ Geocoder affiché pour admin");
                 }
             }
         } else {
             if (adminAddButton) adminAddButton.classList.add("hidden");
 
             if (geocoder) {
-                const geocoderControl = document.querySelector(
-                    ".mapboxgl-ctrl-geocoder"
-                );
-                if (geocoderControl) geocoderControl.style.display = "none";
+                const geocoderControl = document.querySelector(".mapboxgl-ctrl-geocoder");
+                if (geocoderControl) {
+                    geocoderControl.style.display = "none";
+                    console.log("🔒 Geocoder caché (utilisateur non-admin)");
+                }
             }
         }
     }
 
     document.getElementById("login-form").onsubmit = async (e) => {
         e.preventDefault();
-        const { error } = await supabaseClient.auth.signInWithPassword({
+        const {
+            error
+        } = await supabaseClient.auth.signInWithPassword({
             email: document.getElementById("email").value,
             password: document.getElementById("password").value,
         });
@@ -566,11 +674,11 @@ checkUserSession();
 
     async function logout() {
         await supabaseClient.auth.signOut();
-        currentUser = null;          // on vide l’utilisateur
-        updateUIForRole();           // on met l’UI à jour
-        location.reload();           // et on force un vrai reset
+        currentUser = null; // on vide l’utilisateur
+        updateUIForRole(); // on met l’UI à jour
+        location.reload(); // et on force un vrai reset
     }
-    
+
     // 7. EVENTS (Lightbox, etc.)
     document.getElementById("close-panel").onclick = () => {
         const sidePanel = document.getElementById("side-panel");
@@ -643,59 +751,88 @@ checkUserSession();
         }
     });
 
+    // Fermeture panneau par clic sur la carte
+    const mapContainer = document.getElementById('map-container');
+    const sidePanel = document.getElementById('side-panel');
+
+    mapContainer.addEventListener('click', (e) => {
+        // Fermer seulement si panneau ouvert ET clic sur carte (pas sur panneau)
+        if (!sidePanel.classList.contains('panel-hidden')) {
+            console.log('Fermeture panneau par clic carte');
+            sidePanel.classList.add('panel-hidden');
+            setTimeout(() => {
+                sidePanel.style.visibility = 'hidden';
+            }, 400);
+        }
+    });
+
+    // Empêcher la fermeture si clic DANS le panneau (évite conflits)
+    sidePanel.addEventListener('click', (e) => {
+        e.stopPropagation(); // Bloque l'événement map
+    });
+
     document.getElementById("close-login").onclick = () =>
-    (document.getElementById("login-modal").style.display = "none");
+        (document.getElementById("login-modal").style.display = "none");
 
     // 8. FILTRES CATÉGORIES
-function appliquerFiltres() {
-    const categoriesActives = Array.from(
-        document.querySelectorAll(".cat-filter:checked")
-    ).map((cb) => cb.value); // ex: ["culte","plages"]
+    function appliquerFiltres() {
+        const categoriesActives = Array.from(
+            document.querySelectorAll(".cat-filter:checked")
+        ).map((cb) => cb.value); // ex: ["culte","plages"]
 
-    Object.values(tousLesMarqueurs).forEach(({ element, categorie }) => {
-        element.style.display = categoriesActives.includes(categorie)
-            ? "block"
-            : "none";
+        Object.values(tousLesMarqueurs).forEach(({
+            element,
+            categorie
+        }) => {
+            element.style.display = categoriesActives.includes(categorie) ?
+                "block" :
+                "none";
+        });
+    }
+
+    // Bouton ouverture/fermeture panneau filtres
+    const btnFiltersToggle = document.getElementById("btn-filters-toggle");
+    if (btnFiltersToggle) {
+        btnFiltersToggle.onclick = () => {
+            const panel = document.getElementById("category-filters");
+            if (!panel) return;
+            panel.style.display =
+                panel.style.display === "block" ? "none" : "block";
+        };
+    }
+
+    // Bouton fermer (croix) dans le panneau
+    const btnCloseFilters = document.getElementById("btn-close-filters");
+    if (btnCloseFilters) {
+        btnCloseFilters.onclick = () => {
+            const panel = document.getElementById("category-filters");
+            if (panel) panel.style.display = "none";
+        };
+    }
+
+    // Fermer le panneau des filtres au chargement
+    const filterPanel = document.getElementById("category-filters");
+    if (filterPanel) {
+        filterPanel.style.display = "none";
+    }
+
+    // Checkbox catégories
+    document.querySelectorAll(".cat-filter").forEach((cb) => {
+        cb.addEventListener("change", appliquerFiltres);
     });
-}
 
-// Bouton ouverture/fermeture panneau filtres
-const btnFiltersToggle = document.getElementById("btn-filters-toggle");
-if (btnFiltersToggle) {
-    btnFiltersToggle.onclick = () => {
-        const panel = document.getElementById("category-filters");
-        if (!panel) return;
-        panel.style.display =
-            panel.style.display === "block" ? "none" : "block";
-    };
-}
-
-// Bouton fermer (croix) dans le panneau
-const btnCloseFilters = document.getElementById("btn-close-filters");
-if (btnCloseFilters) {
-    btnCloseFilters.onclick = () => {
-        const panel = document.getElementById("category-filters");
-        if (panel) panel.style.display = "none";
-    };
-}
-
-// Checkbox catégories
-document.querySelectorAll(".cat-filter").forEach((cb) => {
-    cb.addEventListener("change", appliquerFiltres);
-});
-
-// Bouton "Tout voir / Tout masquer"
-const btnToggleAll = document.getElementById("btn-toggle-all");
-if (btnToggleAll) {
-    btnToggleAll.onclick = () => {
-        const checkboxes = document.querySelectorAll(".cat-filter");
-        const toutCocher = btnToggleAll.textContent === "Tout voir";
-        checkboxes.forEach((cb) => (cb.checked = toutCocher));
-        btnToggleAll.textContent = toutCocher
-            ? "Tout masquer"
-            : "Tout voir";
-        appliquerFiltres();
-    };
-}
+    // Bouton "Tout voir / Tout masquer"
+    const btnToggleAll = document.getElementById("btn-toggle-all");
+    if (btnToggleAll) {
+        btnToggleAll.onclick = () => {
+            const checkboxes = document.querySelectorAll(".cat-filter");
+            const toutCocher = btnToggleAll.textContent === "Tout voir";
+            checkboxes.forEach((cb) => (cb.checked = toutCocher));
+            btnToggleAll.textContent = toutCocher ?
+                "Tout masquer" :
+                "Tout voir";
+            appliquerFiltres();
+        };
+    }
 
 }
