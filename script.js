@@ -172,6 +172,7 @@ if (typeof mapboxgl === "undefined") {
 
         const categorie = edifice.categorie || "autres";
         el.dataset.categorie = categorie;
+        el.classList.add('marker--' + categorie);
 
         const popup = new mapboxgl.Popup({
             closeButton: false,
