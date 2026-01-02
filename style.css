@@ -641,7 +641,7 @@ input, textarea {
 
 /* Couleurs checkmarks par catégorie */
 .checkmark.culte { border-color: #B8860B; }
-.checkmark.chateaux { border-color: #8B4513; }
+.checkmark.chateaux { border-color: hsl(25, 95%, 48%);}
 .checkmark.historique { border-color: #1E90FF; }
 .checkmark.panorama { border-color: #228B22; }
 .checkmark.plages { border-color: #87CEEB; }
