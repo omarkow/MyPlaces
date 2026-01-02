@@ -465,29 +465,12 @@ input, textarea {
 }
 
 /* Couleurs des marqueurs par catégorie */
-.marker--culte {
-    background-color: #B8860B; /* Or */
-}
-
-.marker--chateaux {
-    background-color: #8B4513; /* Marron château */
-}
-
-.marker--historique {
-    background-color: #1E90FF; /* Bleu historique */
-}
-
-.marker--panorama {
-    background-color: #228B22; /* Vert paysage */
-}
-
-.marker--plages {
-    background-color: #87CEEB; /* Bleu ciel plage */
-}
-
-.marker--autres {
-    background-color: #808080; /* Gris */
-}
+.marker--culte    { background-color: #B8860B; } /* Or */
+.marker--chateaux { background-color: hsl(25, 95%, 48%); } /* brun */
+.marker--historique { background-color: #1E90FF; } /* Bleu */
+.marker--panorama { background-color: #228B22; } /* Vert */
+.marker--plages   { background-color: #87CEEB; } /* Bleu ciel */
+.marker--autres   { background-color: #808080; } /* Gris */
 
 /* Panneau filtres catégories */
 .filters-panel {
