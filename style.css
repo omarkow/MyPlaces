@@ -720,10 +720,12 @@ input, textarea {
     box-shadow: 0 8px 25px rgba(184, 134, 11, 0.4);
 }
 
-.filters-count {
-    font-size: 11px;
-    color: #6b7280;
-    font-weight: 500;
+#filter-panel {
+  display: none; /* Caché par défaut */
+}
+
+#filter-panel.visible {
+  display: block; /* Visible au clic */
 }
 
 /* Mobile */
