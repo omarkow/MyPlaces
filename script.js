@@ -191,13 +191,14 @@ if (typeof mapboxgl === "undefined") {
         el.dataset.categorie = categorie;
         el.classList.add('marker--' + categorie);
 
-        // Fonction pour compter les marqueurs aux mêmes coords au même zoom
+        // Fonction pour compter les superposés (appelée après tous les marqueurs créés)
         function compterSuperposes(lng, lat) {
             let count = 0;
-            const tolerance = map.getZoom() < 14 ? 0.0005 : 0.0001; // Tolérance selon zoom
+            const tolerance = map.getZoom() < 14 ? 0.0005 : 0.0001;
             Object.values(tousLesMarqueurs).forEach(({
                 element
             }) => {
+                if (!element._map) return; // Marqueur non ajouté
                 const markerLng = parseFloat(element._lngLat.lng.toFixed(6));
                 const markerLat = parseFloat(element._lngLat.lat.toFixed(6));
                 if (Math.abs(markerLng - lng) < tolerance && Math.abs(markerLat - lat) < tolerance) {
@@ -207,12 +208,12 @@ if (typeof mapboxgl === "undefined") {
             return count;
         }
 
-        const coords = {
-            lng: parseFloat(edifice.lng),
-            lat: parseFloat(edifice.lat)
-        };
-        const nbSuperposes = compterSuperposes(coords.lng, coords.lat);
-        const estSuperpose = nbSuperposes > 1;
+        const lng = parseFloat(edifice.lng);
+        const lat = parseFloat(edifice.lat);
+        if (isNaN(lng) || isNaN(lat)) {
+            console.warn('Coordonnées invalides pour', edifice.nom);
+            return;
+        }
 
         const popup = new mapboxgl.Popup({
             closeButton: false,
@@ -220,22 +221,24 @@ if (typeof mapboxgl === "undefined") {
         });
 
         const marker = new mapboxgl.Marker(el)
-            .setLngLat([edifice.coords.lng, edifice.coords.lat])
+            .setLngLat([lng, lat])
             .addTo(map);
 
         if (edifice.id != null) {
             tousLesMarqueurs[edifice.id] = {
-                element: el,
+                element: marker._element || el,
                 categorie
-            };
+            }; // Corrige l'assignation
         }
 
         el.addEventListener('mouseenter', () => {
+            const nbSuperposes = compterSuperposes(lng, lat);
+            const estSuperpose = nbSuperposes > 1;
             popup
-                .setLngLat([edifice.coords.lng, edifice.coords.lat])
+                .setLngLat([lng, lat])
                 .setHTML(`
         <strong>${edifice.nom}</strong>
-        ${estSuperpose ? `<br><small><em>${nbSuperposes} édifices superposés ici. Zoomez pour les séparer.</em></small>` : ''}
+        ${estSuperpose ? `<br><small><em>${nbSuperposes} édifices superposés. Zoomez pour les voir tous !</em></small>` : ''}
       `)
                 .addTo(map);
         });
@@ -246,7 +249,7 @@ if (typeof mapboxgl === "undefined") {
 
         el.addEventListener('click', (e) => {
             e.stopPropagation();
-            console.log('Clic sur marqueur, donnes transmises ', edifice);
+            console.log('Clic sur marqueur:', edifice);
             afficherDetails(edifice);
         });
     }
