@@ -104,8 +104,8 @@ if (typeof mapboxgl === "undefined") {
 
     console.log('Token Mapbox:', mapboxgl.accessToken ? 'OK' : 'MANQUANT');
     if (!mapboxgl.accessToken) {
-    console.error('❌ Token Mapbox manquant !');
-    throw new Error('Token Mapbox manquant - arrêt script');  // ✅ OK global
+        console.error('❌ Token Mapbox manquant !');
+        throw new Error('Token Mapbox manquant - arrêt script'); // ✅ OK global
     }
 
     map.on('load', () => {
@@ -172,10 +172,13 @@ if (typeof mapboxgl === "undefined") {
             layout: {
                 'text-field': '{point_count_abbreviated}',
                 'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-                'text-size': 14,
-                'text-color': 'white'
+                'text-size': 14
+            },
+            paint: { // 👈 AJOUTEZ paint ICI
+                'text-fill-color': 'white' // ✅ CORRECT
             }
         });
+
 
         // Marqueurs individuels (déclusterisés)
         map.addLayer({
@@ -951,5 +954,4 @@ if (typeof mapboxgl === "undefined") {
             appliquerFiltres();
         };
     }
-
 }
