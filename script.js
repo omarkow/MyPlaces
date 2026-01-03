@@ -193,6 +193,10 @@ if (typeof mapboxgl === "undefined") {
         el.dataset.categorie = categorie;
         el.classList.add('marker--' + categorie);
 
+        // ✅ STOCKER les coordonnées DIRECTEMENT sur l'élément
+        el.dataset.lng = edifice.lng;
+        el.dataset.lat = edifice.lat;
+
         const lng = parseFloat(edifice.lng);
         const lat = parseFloat(edifice.lat);
         if (isNaN(lng) || isNaN(lat)) {
@@ -204,7 +208,6 @@ if (typeof mapboxgl === "undefined") {
             closeButton: false,
             offset: 25
         });
-
         const marker = new mapboxgl.Marker(el)
             .setLngLat([lng, lat])
             .addTo(map);
@@ -228,7 +231,6 @@ if (typeof mapboxgl === "undefined") {
         });
 
         el.addEventListener('mouseleave', () => popup.remove());
-
         el.addEventListener('click', (e) => {
             e.stopPropagation();
             afficherDetails(edifice);
@@ -236,50 +238,39 @@ if (typeof mapboxgl === "undefined") {
     }
 
 
-    function calculerEtAssignerSuperpositions() {
-        const tolerance = 0.045; // 5000m ~ 0.045° latitude
-        const marqueursParPosition = {};
-        let totalDebug = 0;
 
-        // Grouper avec tolérance large
-        Object.entries(tousLesMarqueurs).forEach(([id, {
+    function calculerEtAssignerSuperpositions() {
+        const tolerance = 0.045; // 5km
+        const marqueursParPosition = {};
+
+        // Grouper PAR LES DONNÉES dataset.lng/lat (PAS _lngLat !)
+        Object.values(tousLesMarqueurs).forEach(({
             element
-        }]) => {
-            if (!element._lngLat) {
-                totalDebug++;
-                return;
-            }
-            const lng = parseFloat(element._lngLat.lng.toFixed(4)); // Précision ~1km
-            const lat = parseFloat(element._lngLat.lat.toFixed(4));
-            const key = `${lng.toFixed(4)},${lat.toFixed(4)}`;
+        }) => {
+            const lng = parseFloat(element.dataset.lng);
+            const lat = parseFloat(element.dataset.lat);
+            if (isNaN(lng) || isNaN(lat)) return;
+
+            // Grille ~1km de précision
+            const key = `${Math.round(lng * 1000)},${Math.round(lat * 1000)}`;
             if (!marqueursParPosition[key]) marqueursParPosition[key] = [];
-            marqueursParPosition[key].push({
-                element,
-                id
-            });
-            totalDebug++;
+            marqueursParPosition[key].push(element);
         });
 
-        // Assigner
         let nbGroupesSuperposes = 0;
         Object.values(marqueursParPosition).forEach(groupe => {
             const nb = groupe.length;
             if (nb > 1) {
-                nbGroupesSuperposes += nb;
-                groupe.forEach(({
-                    element
-                }) => {
+                nbGroupesSuperposes++;
+                groupe.forEach(element => {
                     element.dataset.nbSuperposes = nb;
+                    console.log(`✓ ${nb} édifices assignés à`, element.dataset.lng, element.dataset.lat);
                 });
             }
         });
 
-        console.log(`Superpositions (tol 5km): ${Object.keys(marqueursParPosition).length} positions uniques, ${nbGroupesSuperposes} édifices groupés`);
-        if (totalDebug === 0) console.warn('Aucun marqueur avec _lngLat valide');
+        console.log(`✅ Superpositions détectées: ${nbGroupesSuperposes} groupes (tolérance 5km)`);
     }
-
-
-
 
     // 4. STORAGE & COMPRESSION
     async function uploadImage(file) {
