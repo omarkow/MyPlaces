@@ -174,10 +174,11 @@ if (typeof mapboxgl === "undefined") {
                 'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
                 'text-size': 14
             },
-            paint: { // 👈 AJOUTEZ paint ICI
-                'text-fill-color': 'white' // ✅ CORRECT
+            paint: {
+                'text-fill-color': '#ffffff' // ✅ CORRECT dans paint !
             }
         });
+
 
 
         // Marqueurs individuels (déclusterisés)
@@ -954,4 +955,5 @@ if (typeof mapboxgl === "undefined") {
             appliquerFiltres();
         };
     }
+
 }
