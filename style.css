@@ -804,3 +804,13 @@ input, textarea {
     font-size: 18px;
   }
 }
+
+.mapboxgl-popup {
+  z-index: 1000 !important;
+}
+
+.mapboxgl-popup-content {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
