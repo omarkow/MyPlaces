@@ -104,8 +104,8 @@ if (typeof mapboxgl === "undefined") {
 
     console.log('Token Mapbox:', mapboxgl.accessToken ? 'OK' : 'MANQUANT');
     if (!mapboxgl.accessToken) {
-        console.error('❌ Token Mapbox manquant !');
-        return;
+    console.error('❌ Token Mapbox manquant !');
+    throw new Error('Token Mapbox manquant - arrêt script');  // ✅ OK global
     }
 
     map.on('load', () => {
