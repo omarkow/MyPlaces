@@ -181,6 +181,8 @@ if (typeof mapboxgl === "undefined") {
                 });
             }
         });
+        console.log('Tous marqueurs chargés, calcul superpositions...');
+        calculerEtAssignerSuperpositions();
     }
 
     function creerMarqueur(edifice) {
@@ -190,23 +192,6 @@ if (typeof mapboxgl === "undefined") {
         const categorie = edifice.categorie || 'autres';
         el.dataset.categorie = categorie;
         el.classList.add('marker--' + categorie);
-
-        // Fonction pour compter les superposés (appelée après tous les marqueurs créés)
-        function compterSuperposes(lng, lat) {
-            let count = 0;
-            const tolerance = map.getZoom() < 14 ? 0.0005 : 0.0001;
-            Object.values(tousLesMarqueurs).forEach(({
-                element
-            }) => {
-                if (!element._map) return; // Marqueur non ajouté
-                const markerLng = parseFloat(element._lngLat.lng.toFixed(6));
-                const markerLat = parseFloat(element._lngLat.lat.toFixed(6));
-                if (Math.abs(markerLng - lng) < tolerance && Math.abs(markerLat - lat) < tolerance) {
-                    count++;
-                }
-            });
-            return count;
-        }
 
         const lng = parseFloat(edifice.lng);
         const lat = parseFloat(edifice.lat);
@@ -226,33 +211,65 @@ if (typeof mapboxgl === "undefined") {
 
         if (edifice.id != null) {
             tousLesMarqueurs[edifice.id] = {
-                element: marker._element || el,
+                element: el,
                 categorie
-            }; // Corrige l'assignation
+            };
         }
 
         el.addEventListener('mouseenter', () => {
-            const nbSuperposes = compterSuperposes(lng, lat);
-            const estSuperpose = nbSuperposes > 1;
+            const nbSuperposes = parseInt(el.dataset.nbSuperposes) || 1;
             popup
                 .setLngLat([lng, lat])
                 .setHTML(`
         <strong>${edifice.nom}</strong>
-        ${estSuperpose ? `<br><small><em>${nbSuperposes} édifices superposés. Zoomez pour les voir tous !</em></small>` : ''}
+        ${nbSuperposes > 1 ? `<br><small><em>${nbSuperposes} édifices ici. Zoomez pour les séparer !</em></small>` : ''}
       `)
                 .addTo(map);
         });
 
-        el.addEventListener('mouseleave', () => {
-            popup.remove();
-        });
+        el.addEventListener('mouseleave', () => popup.remove());
 
         el.addEventListener('click', (e) => {
             e.stopPropagation();
-            console.log('Clic sur marqueur:', edifice);
             afficherDetails(edifice);
         });
     }
+
+
+    function calculerEtAssignerSuperpositions() {
+        const marqueursParPosition = {};
+        const tolerance = 0.0001; // ~10m, ajustez si besoin
+
+        // Grouper par position
+        Object.values(tousLesMarqueurs).forEach(({
+            element,
+            categorie
+        }, id) => {
+            if (!element._lngLat) return;
+            const key = `${parseFloat(element._lngLat.lng.toFixed(6))},${parseFloat(element._lngLat.lat.toFixed(6))}`;
+            if (!marqueursParPosition[key]) marqueursParPosition[key] = [];
+            marqueursParPosition[key].push({
+                element,
+                id,
+                categorie
+            });
+        });
+
+        // Assigner nbSuperposes à chaque élément
+        Object.keys(marqueursParPosition).forEach(key => {
+            const groupe = marqueursParPosition[key];
+            const nb = groupe.length;
+            if (nb > 1) {
+                groupe.forEach(({
+                    element
+                }) => {
+                    element.dataset.nbSuperposes = nb;
+                });
+            }
+        });
+        console.log('Superpositions assignées:', Object.keys(marqueursParPosition).filter(k => marqueursParPosition[k].length > 1).length, 'groupes');
+    }
+
 
 
     // 4. STORAGE & COMPRESSION
