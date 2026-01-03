@@ -84,6 +84,7 @@ if (typeof mapboxgl === "undefined") {
 
     map.on("load", () => {
         console.log("✅ Carte chargée - load event OK");
+
         geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
             mapboxgl: mapboxgl,
@@ -149,49 +150,63 @@ if (typeof mapboxgl === "undefined") {
 
     // 3. CHARGEMENT & MARQUEURS
     async function loadEdifices() {
-        console.log('Début loadEdifices...');
         const {
             data,
             error
         } = await supabaseClient
-            .from('edifices')
-            .select('*');
-
+            .from("edifices")
+            .select("*");
         if (error) {
-            console.error('Supabase error:', error);
+            console.error(error);
             return;
         }
 
-        console.log('Données reçues:', data.length, 'édifices');
+        document.querySelectorAll(".marker").forEach((m) => m.remove());
+        tousLesMarqueurs = {};
 
-        // Nettoyage anciens marqueurs
-        document.querySelectorAll('.marker').forEach(m => m.remove());
-        tousLesMarqueurs = {}; // Reset
-
-        // Création marqueurs
-        data.forEach(edifice => {
-            console.log('Chargement:', edifice.nom);
+        data.forEach((edifice) => {
+            console.log(
+                `Chargement de ${edifice.nom}, photos:`,
+                edifice.images
+            );
             if (edifice.lng && edifice.lat) {
-                creerMarqueur(edifice);
+                creerMarqueur({
+                    ...edifice,
+                    images: Array.isArray(edifice.images) ?
+                        edifice.images : [],
+                    coords: {
+                        lng: parseFloat(edifice.lng),
+                        lat: parseFloat(edifice.lat),
+                    },
+                });
             }
         });
-
-        console.log('Tous marqueurs chargés!');
-        calculerEtAssignerSuperpositions();
     }
-
 
     function creerMarqueur(edifice) {
         const el = document.createElement('div');
         el.className = 'marker';
         el.style.cursor = 'pointer';
-
         const categorie = edifice.categorie || 'autres';
         el.dataset.categorie = categorie;
-        el.classList.add(`marker--${categorie}`);
-        el.dataset.lng = edifice.lng;
-        el.dataset.lat = edifice.lat;
-        el.dataset.id = edifice.id;
+        el.classList.add('marker--' + categorie);
+
+        // Fonction pour compter les superposés (appelée après tous les marqueurs créés)
+        function compterSuperposes(lng, lat) {
+            let count = 0;
+            const tolerance = map.getZoom() < 14 ? 0.0005 : 0.0001;
+            Object.values(tousLesMarqueurs).forEach(({
+                element
+            }) => {
+                if (!element._map) return; // Marqueur non ajouté
+                const markerLng = parseFloat(element._lngLat.lng.toFixed(6));
+                const markerLat = parseFloat(element._lngLat.lat.toFixed(6));
+                if (Math.abs(markerLng - lng) < tolerance && Math.abs(markerLat - lat) < tolerance) {
+                    count++;
+                }
+            });
+            return count;
+        }
 
         const lng = parseFloat(edifice.lng);
         const lat = parseFloat(edifice.lat);
@@ -200,97 +215,43 @@ if (typeof mapboxgl === "undefined") {
             return;
         }
 
+        const popup = new mapboxgl.Popup({
+            closeButton: false,
+            offset: 25
+        });
+
         const marker = new mapboxgl.Marker(el)
             .setLngLat([lng, lat])
             .addTo(map);
 
         if (edifice.id != null) {
             tousLesMarqueurs[edifice.id] = {
-                element: el,
-                categorie,
-                edifice
-            };
+                element: marker._element || el,
+                categorie
+            }; // Corrige l'assignation
         }
 
-        // ANTI-CLIGNOTEMENT + STABLE
-        let hoverTimeout;
-        el.addEventListener('mouseenter', function() {
-            clearTimeout(hoverTimeout);
-            hoverTimeout = setTimeout(() => {
-                if (el._currentPopup) return; // Bloque multiples
-
-                const nbSuperposes = parseInt(el.dataset.nbSuperposes || 1);
-                const edificeId = el.dataset.id;
-                const edificeData = tousLesMarqueurs[edificeId];
-                const nom = edificeData ? edificeData.edifice.nom : 'Édifice';
-
-                let content = `<strong>${nom}</strong>`;
-                if (nbSuperposes > 1) {
-                    content += `<br><small><em>${nbSuperposes} édifices. Zoomez!</em></small>`;
-                }
-
-                el._currentPopup = new mapboxgl.Popup({
-                        closeButton: false,
-                        offset: 25,
-                        className: 'stable-popup'
-                    })
-                    .setLngLat([lng, lat])
-                    .setHTML(content)
-                    .addTo(map);
-            }, 200); // Délai anti-rapide
+        el.addEventListener('mouseenter', () => {
+            const nbSuperposes = compterSuperposes(lng, lat);
+            const estSuperpose = nbSuperposes > 1;
+            popup
+                .setLngLat([lng, lat])
+                .setHTML(`
+        <strong>${edifice.nom}</strong>
+        ${estSuperpose ? `<br><small><em>${nbSuperposes} édifices superposés. Zoomez pour les voir tous !</em></small>` : ''}
+      `)
+                .addTo(map);
         });
 
-        el.addEventListener('mouseleave', function() {
-            clearTimeout(hoverTimeout);
-            if (el._currentPopup) {
-                el._currentPopup.remove();
-                el._currentPopup = null;
-            }
+        el.addEventListener('mouseleave', () => {
+            popup.remove();
         });
 
         el.addEventListener('click', (e) => {
             e.stopPropagation();
+            console.log('Clic sur marqueur:', edifice);
             afficherDetails(edifice);
         });
-    }
-
-
-    function calculerEtAssignerSuperpositions() {
-        const tolerance = 0.001; // 100m
-        const marqueursParPosition = {}; // Grouper PAR LES DONNÉES dataset.lng|lat (PAS lngLat !)
-
-        Object.values(tousLesMarqueurs).forEach(({
-            element
-        }) => {
-            const lng = parseFloat(element.dataset.lng);
-            const lat = parseFloat(element.dataset.lat);
-            if (isNaN(lng) || isNaN(lat)) return;
-
-            // Grille 1km de précision
-            const key = `${Math.round(lng * 1000)},${Math.round(lat * 1000)}`;
-            if (!marqueursParPosition[key]) marqueursParPosition[key] = [];
-            marqueursParPosition[key].push(element);
-        });
-
-        let nbGroupesSuperposes = 0;
-        Object.values(marqueursParPosition).forEach(groupe => {
-            const nb = groupe.length;
-            if (nb > 1) nbGroupesSuperposes++;
-
-            // ← AJOUT ICI (remplace ancien forEach)
-            groupe.forEach((element, index) => {
-                element.dataset.nbSuperposes = nb;
-                element.classList.remove('clustered'); // Reset
-                if (nb > 1) {
-                    element.classList.add('clustered');
-                    element.title = `${nb} édifices superposés`;
-                }
-            });
-
-            console.log(`${nb} édifices assignés`, groupe[0].dataset.lng, groupe[0].dataset.lat);
-        });
-
-        console.log(`✅ Superpositions détectées: ${nbGroupesSuperposes} groupes (tolérance ${tolerance * 111}km)`);
     }
 
 
@@ -882,9 +843,6 @@ if (typeof mapboxgl === "undefined") {
                 "block" :
                 "none";
         });
-        // Réappliquer superpositions après filtres
-        setTimeout(calculerEtAssignerSuperpositions, 100);
-
     }
 
     // Bouton ouverture/fermeture panneau filtres
