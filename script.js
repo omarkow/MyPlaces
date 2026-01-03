@@ -29,6 +29,9 @@ const categorieLabels = {
 
 console.log("🚀 Début script.js v2.0");
 
+mapboxgl.accessToken = 'pk.eyJ1Ijoib21hcmtvdyIsImEiOiJjbWpuaDd5ejUxYmE4M2VzZDRiNjU0dWIzIn0.1MkpX6vH8AytjKHfBAwvWQ';
+console.log('🔑 Token Mapbox chargé:', mapboxgl.accessToken ? 'OK (' + mapboxgl.accessToken.length + ' chars)' : '❌ MANQUANT');
+
 if (typeof mapboxgl === "undefined") {
     console.error("❌ mapboxgl NON CHARGÉ ! Vérifie index.html");
 } else {
