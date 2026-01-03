@@ -162,7 +162,11 @@ if (typeof mapboxgl === "undefined") {
         }
 
         document.querySelectorAll(".marker").forEach((m) => m.remove());
-        tousLesMarqueurs = {};
+        tousLesMarqueurs[edifice.id] = {
+            element: el,
+            categorie,
+            edifice
+        };
 
         data.forEach((edifice) => {
             console.log(
@@ -204,10 +208,6 @@ if (typeof mapboxgl === "undefined") {
             return;
         }
 
-        const popup = new mapboxgl.Popup({
-            closeButton: false,
-            offset: 25
-        });
         const marker = new mapboxgl.Marker(el)
             .setLngLat([lng, lat])
             .addTo(map);
@@ -215,26 +215,43 @@ if (typeof mapboxgl === "undefined") {
         if (edifice.id != null) {
             tousLesMarqueurs[edifice.id] = {
                 element: el,
-                categorie
+                categorie,
+                edifice
             };
         }
 
+        // Stocker l'ID sur l'élément pour récupération dynamique
+        el.dataset.id = edifice.id;
+
+        // Événements dynamiques - popup créé à chaque survol
         el.addEventListener('mouseenter', () => {
-            const nbSuperposes = parseInt(el.dataset.nbSuperposes) || 1;
-            popup
-                .setLngLat([lng, lat])
-                .setHTML(`
-        <strong>${edifice.nom}</strong>
-        ${nbSuperposes > 1 ? `<br><small><em>${nbSuperposes} édifices ici. Zoomez pour les séparer !</em></small>` : ''}
-      `)
+            const nbSuperposes = parseInt(el.dataset.nbSuperposes || 1);
+            const edificeId = el.dataset.id;
+            const edificeData = tousLesMarqueurs[edificeId];
+            const nom = edificeData ? edificeData.edifice.nom : 'Édifice inconnu';
+
+            let popupContent = `<strong>${nom}</strong>`;
+            if (nbSuperposes > 1) {
+                popupContent += `<br><small><em>${nbSuperposes} édifices ici. Zoomez pour les séparer !</em></small>`;
+            }
+
+            const popup = new mapboxgl.Popup({
+                    closeButton: false,
+                    offset: 25
+                })
+                .setLngLat([parseFloat(el.dataset.lng), parseFloat(el.dataset.lat)])
+                .setHTML(popupContent)
                 .addTo(map);
+            el._currentPopup = popup; // Stockage pour suppression
         });
 
-        el.addEventListener('mouseleave', () => popup.remove());
-        el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            afficherDetails(edifice);
+        el.addEventListener('mouseleave', () => {
+            if (el._currentPopup) {
+                el._currentPopup.remove();
+                delete el._currentPopup;
+            }
         });
+
     }
 
 
