@@ -106,6 +106,18 @@ html, body {
     height: 15px !important;
 }
 
+.mapboxgl-ctrl-zoom {
+  background: rgba(253, 251, 247, 0.95) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+.mapboxgl-ctrl-zoom-in, .mapboxgl-ctrl-zoom-out {
+  border: 1px solid rgba(184, 134, 11, 0.2) !important;
+  width: 36px !important;
+  height: 36px !important;
+}
+
 /* ==========================================================================
    5. PANNEAU LATÉRAL ET BOUTON +
    ========================================================================== */
@@ -465,7 +477,7 @@ input, textarea {
 }
 
 /* Couleurs des marqueurs par catégorie */
-.marker--culte    { background-color: #B8860B; } /* Or */
+.marker--culte    { background-color: #0ff103; } /* Or */
 .marker--chateaux { background-color: hsl(25, 95%, 48%); } /* brun */
 .marker--historique { background-color: #1E90FF; } /* Bleu */
 .marker--panorama { background-color: #228B22; } /* Vert */
@@ -640,7 +652,7 @@ input, textarea {
 }
 
 /* Couleurs checkmarks par catégorie */
-.checkmark.culte { border-color: #B8860B; }
+.checkmark.culte { border-color: #0ff103; }
 .checkmark.chateaux { border-color: hsl(25, 95%, 48%);}
 .checkmark.historique { border-color: #1E90FF; }
 .checkmark.panorama { border-color: #228B22; }
