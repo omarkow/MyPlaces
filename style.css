@@ -477,7 +477,7 @@ input, textarea {
 }
 
 /* Couleurs des marqueurs par catégorie */
-.marker--culte    { background-color: #0ff103; } /* Or */
+.marker--culte    { background-color: #fac505; } /* Or */
 .marker--chateaux { background-color: hsl(25, 95%, 48%); } /* brun */
 .marker--historique { background-color: #1E90FF; } /* Bleu */
 .marker--panorama { background-color: #228B22; } /* Vert */
@@ -652,7 +652,7 @@ input, textarea {
 }
 
 /* Couleurs checkmarks par catégorie */
-.checkmark.culte { border-color: #0ff103; }
+.checkmark.culte { border-color: #fac505; }
 .checkmark.chateaux { border-color: hsl(25, 95%, 48%);}
 .checkmark.historique { border-color: #1E90FF; }
 .checkmark.panorama { border-color: #228B22; }
@@ -748,4 +748,59 @@ input, textarea {
 .btn-filters-modern svg {
     width: 14px;
     height: 14px;
+}
+
+/* ========== BOUTONS DE ZOOM PERSONNALISÉS ========== */
+
+.zoom-controls {
+  position: fixed;
+  top: 100px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 200;
+}
+
+.zoom-btn {
+  width: 40px;
+  height: 40px;
+  background: rgba(253, 251, 247, 0.95);
+  border: 1px solid rgba(184, 134, 11, 0.2);
+  border-radius: 6px;
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--accent-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.zoom-btn:hover {
+  background: var(--accent-color);
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.3);
+}
+
+.zoom-btn:active {
+  transform: scale(0.95);
+}
+
+/* Responsive - mobiles */
+@media (max-width: 768px) {
+  .zoom-controls {
+    top: 80px;
+    left: 10px;
+    gap: 6px;
+  }
+
+  .zoom-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
 }
