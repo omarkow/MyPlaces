@@ -247,11 +247,8 @@ if (typeof mapboxgl === "undefined") {
         });
     }
 
-
-
-
     function calculerEtAssignerSuperpositions() {
-        const tolerance = 0.045; // 5km
+        const tolerance = 0.001;
         const marqueursParPosition = {};
 
         // Grouper PAR LES DONNÉES dataset.lng/lat (PAS _lngLat !)
