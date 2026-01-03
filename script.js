@@ -1,28 +1,10 @@
-// TOKEN ABSOLUMENT PREMIER
-mapboxgl.accessToken = 'pk.eyJ1Ijoib21hcmtvdyIsImEiOiJjbWpuaDd5ejUxYmE4M2VzZDRiNjU0dWIzIn0.1MkpX6vH8AytjKHfBAwvWQ';
-
-console.log("🚀 Début script.js v2.0");
-console.log('🔑 Token Mapbox:', mapboxgl.accessToken.substring(0, 20) + '... (' + mapboxgl.accessToken.length + ' chars)');
-
-// Variables globales
+// 1. INITIALISATION & VARIABLES GLOBALES
 let currentUser = null;
 let tempExistingImages = [];
 let currentImages = [];
 let currentIndex = 0;
 let geocoder = null;
-let tousLesMarqueurs = {};
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+let tousLesMarqueurs = {}; // { id_edifice: { element, categorie } }
 
 const categorieLabels = {
     'culte': 'Lieu de culte',
@@ -88,30 +70,21 @@ if (typeof mapboxgl === "undefined") {
     checkUserSession();
 
     // 2. CARTE MAPBOX
+    mapboxgl.accessToken =
+        "pk.eyJ1Ijoib21hcmtvdyIsImEiOiJjbWpuaDd5ejUxYmE4M2VzZDRiNjU0dWIzIn0.1MkpX6vH8AytjKHfBAwvWQ";
+
     const map = new mapboxgl.Map({
-        container: 'map-container',
-        style: 'mapbox://styles/mapbox/light-v11',
+        container: "map-container",
+        style: "mapbox://styles/mapbox/light-v11",
         center: [2.3522, 48.8566],
         zoom: 4.5,
     });
 
-    map.addControl(new mapboxgl.NavigationControl({
-        visualizePitch: false, // Pas de compas/rotation si non nécessaire
-    }), 'top-right'); // Position : top-right, top-left, bottom-right, etc.
-
-
     console.log("🗺️ Map créée");
 
-    console.log('Token Mapbox:', mapboxgl.accessToken ? 'OK' : 'MANQUANT');
-    if (!mapboxgl.accessToken) {
-        console.error('❌ Token Mapbox manquant !');
-        throw new Error('Token Mapbox manquant - arrêt script'); // ✅ OK global
-    }
-
-    map.on('load', () => {
+    map.on("load", () => {
         console.log("✅ Carte chargée - load event OK");
 
-        // 👇 VOTRE GÉOCODEUR (inchangé)
         geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
             mapboxgl: mapboxgl,
@@ -121,109 +94,37 @@ if (typeof mapboxgl === "undefined") {
 
         geocoder.on("result", (e) => {
             if (!currentUser || currentUser.role !== roles.ADMIN) {
-                alert("Vous devez être connecté en tant qu'administrateur pour ajouter un édifice.");
+                alert(
+                    "Vous devez être connecté en tant qu'administrateur pour ajouter un édifice."
+                );
                 return;
             }
+
             console.log("Résultat geocoder :", e.result);
             const coords = e.result.geometry.coordinates;
+
             ouvrirFormulaireEdition(coords[0], coords[1]);
+
             setTimeout(() => {
                 const addrInput = document.getElementById("edit-adresse");
-                if (addrInput) addrInput.value = e.result.place_name || "";
+                if (addrInput) {
+                    addrInput.value = e.result.place_name || "";
+                }
             }, 100);
         });
 
-        // 👇 NOUVEAU : CLUSTERING
-        map.addSource('edifices', {
-            type: 'geojson',
-            data: {
-                type: 'FeatureCollection',
-                features: []
-            },
-            cluster: true,
-            clusterMaxZoom: 14,
-            clusterRadius: 50
-        });
+        // if (currentUser && currentUser.role === roles.ADMIN) {
+        //     map.addControl(geocoder, "top-left");
+        //     console.log("✅ Geocoder visible pour l'admin");
+        // } else {
+        //    console.log(
+        //        "🔒 Geocoder non visible (utilisateur non-admin ou déconnecté)"
+        //    );
+        //}
 
-        // Layer clusters (cercles avec couleur par nombre)
-        map.addLayer({
-            id: 'clusters',
-            type: 'circle',
-            source: 'edifices',
-            filter: ['has', 'point_count'],
-            paint: {
-                'circle-color': [
-                    'step', ['get', 'point_count'], '#51bbd6', // 1+
-                    5, '#f28cb1', // 5+
-                    10, '#B8860B' // 10+ (votre couleur accent)
-                ],
-                'circle-radius': [
-                    'step', ['get', 'point_count'], 25, 5, 35, 10, 45
-                ]
-            }
-        });
-
-        // Compteur sur clusters
-        map.addLayer({
-            id: 'cluster-count',
-            type: 'symbol',
-            source: 'edifices',
-            filter: ['has', 'point_count'],
-            layout: {
-                'text-field': '{point_count_abbreviated}',
-                'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-                'text-size': 14
-            },
-            paint: {
-                'text-fill-color': '#ffffff' // ✅ CORRECT dans paint !
-            }
-        });
-
-
-
-        // Marqueurs individuels (déclusterisés)
-        map.addLayer({
-            id: 'unclustered-point',
-            type: 'circle',
-            source: 'edifices',
-            filter: ['!', ['has', 'point_count']],
-            paint: {
-                'circle-color': '#B8860B',
-                'circle-radius': 12,
-                'circle-stroke-width': 2,
-                'circle-stroke-color': '#fff',
-                'circle-stroke-opacity': 0.8
-            }
-        });
-
-        // 👇 ÉVÉNEMENTS CLUSTER
-        map.on('click', 'clusters', (e) => {
-            const features = map.queryRenderedFeatures(e.point, {
-                layers: ['clusters']
-            });
-            const clusterId = features[0].properties.cluster_id;
-            map.getSource('edifices').getClusterExpansionZoom(clusterId, (err, zoom) => {
-                if (err) return;
-                map.easeTo({
-                    center: features[0].geometry.coordinates,
-                    zoom
-                });
-            });
-        });
-
-        map.on('click', 'unclustered-point', (e) => {
-            const props = e.features[0].properties;
-            afficherDetails(props);
-        });
-
-        map.on('mouseenter', 'clusters', () => map.getCanvas().style.cursor = 'pointer');
-        map.on('mouseleave', 'clusters', () => map.getCanvas().style.cursor = '');
-
-        // 👇 VOS FONCTIONS FINALES (inchangées)
-        loadEdifices(); // ⚠️ Sera modifiée ci-dessous
+        loadEdifices();
         updateUIForRole();
     });
-
 
     map.on("error", (e) => {
         console.error("❌ Erreur Mapbox:", e);
@@ -234,34 +135,35 @@ if (typeof mapboxgl === "undefined") {
         const {
             data,
             error
-        } = await supabaseClient.from('edifices').select();
+        } = await supabaseClient
+            .from("edifices")
+            .select("*");
         if (error) {
             console.error(error);
             return;
         }
 
-        // 👇 NOUVEAU : Conversion en GeoJSON pour clustering
-        const features = data.map(edifice => ({
-            type: 'Feature',
-            geometry: {
-                type: 'Point',
-                coordinates: [parseFloat(edifice.lng), parseFloat(edifice.lat)]
-            },
-            properties: edifice
-        }));
+        document.querySelectorAll(".marker").forEach((m) => m.remove());
+        tousLesMarqueurs = {};
 
-        map.getSource('edifices').setData({
-            type: 'FeatureCollection',
-            features
+        data.forEach((edifice) => {
+            console.log(
+                `Chargement de ${edifice.nom}, photos:`,
+                edifice.images
+            );
+            if (edifice.lng && edifice.lat) {
+                creerMarqueur({
+                    ...edifice,
+                    images: Array.isArray(edifice.images) ?
+                        edifice.images : [],
+                    coords: {
+                        lng: parseFloat(edifice.lng),
+                        lat: parseFloat(edifice.lat),
+                    },
+                });
+            }
         });
-
-        // Nettoyage ancien système (si existant)
-        document.querySelectorAll('.marker').forEach(m => m.remove());
-        tousLesMarqueurs = {}; // Reset
-
-        console.log(`✅ ${features.length} édifices chargés avec clustering`);
     }
-
 
     function creerMarqueur(edifice) {
         const el = document.createElement("div");
@@ -460,28 +362,6 @@ if (typeof mapboxgl === "undefined") {
         <div id="preview-thumbnails" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;"></div>
     </div>`;
         populateFormFields(edificeData);
-
-        // Ajout du géocodage sur changement d'adresse pour mise à jour
-        const addrInput = document.getElementById('edit-adresse');
-        addrInput.addEventListener('input', debounce(async (e) => {
-            const query = e.target.value;
-            if (query.length < 3) return;
-            try {
-                const response = await fetch(
-                    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}&types=address,poi&country=FR|BE&proximity=${map.getCenter().lng},${map.getCenter().lat}&limit=1`
-                );
-                const data = await response.json();
-                if (data.features.length > 0) {
-                    const coords = data.features[0].geometry.coordinates;
-                    document.getElementById('edit-lng').value = coords[0];
-                    document.getElementById('edit-lat').value = coords[1];
-                    console.log('Adresse géocodée:', query, '→', coords);
-                }
-            } catch (err) {
-                console.error('Erreur géocodage:', err);
-            }
-        }, 500));
-
         const fileLabel = document.getElementById("file-label");
         fileLabel.onmouseenter = () => {
             fileLabel.style.background = "rgba(184, 134, 11, 0.15)";
