@@ -814,3 +814,7 @@ input, textarea {
   border-radius: 6px;
   padding: 8px 12px;
 }
+
+.mapboxgl-popup {
+  pointer-events: none !important;
+}
