@@ -238,7 +238,7 @@ if (typeof mapboxgl === "undefined") {
 
     function calculerEtAssignerSuperpositions() {
   const marqueursParPosition = {};
-  const tolerance = 0.000001; // ~1000m
+  const tolerance = 0.01; // ~1000m
 
   // Grouper par position depuis tousLesMarqueurs
   Object.entries(tousLesMarqueurs).forEach(([id, { element, categorie }]) => {
