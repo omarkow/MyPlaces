@@ -236,42 +236,47 @@ if (typeof mapboxgl === "undefined") {
     }
 
 
-function calculerEtAssignerSuperpositions() {
-  const tolerance = 0.001; // 100m pour Reims
-  let nbGroupes = 0;
+    function calculerEtAssignerSuperpositions() {
+        const tolerance = 0.045; // 5000m ~ 0.045° latitude
+        const marqueursParPosition = {};
+        let totalDebug = 0;
 
-  Object.entries(tousLesMarqueurs).forEach(([id, data]) => {
-    const { element } = data;
-    if (!element._lngLat) return;
-    const lng = element._lngLat.lng;
-    const lat = element._lngLat.lat;
-    const key = `${Math.round(lng * 1000)},${Math.round(lat * 1000)}`; // Tolérance ~100m
-    if (!data.groupKey) data.groupKey = key;
-  });
+        // Grouper avec tolérance large
+        Object.entries(tousLesMarqueurs).forEach(([id, {
+            element
+        }]) => {
+            if (!element._lngLat) {
+                totalDebug++;
+                return;
+            }
+            const lng = parseFloat(element._lngLat.lng.toFixed(4)); // Précision ~1km
+            const lat = parseFloat(element._lngLat.lat.toFixed(4));
+            const key = `${lng.toFixed(4)},${lat.toFixed(4)}`;
+            if (!marqueursParPosition[key]) marqueursParPosition[key] = [];
+            marqueursParPosition[key].push({
+                element,
+                id
+            });
+            totalDebug++;
+        });
 
-  // Compter par groupe
-  const groupes = {};
-  Object.entries(tousLesMarqueurs).forEach(([id, data]) => {
-    if (data.groupKey) {
-      groupes[data.groupKey] = (groupes[data.groupKey] || 0) + 1;
+        // Assigner
+        let nbGroupesSuperposes = 0;
+        Object.values(marqueursParPosition).forEach(groupe => {
+            const nb = groupe.length;
+            if (nb > 1) {
+                nbGroupesSuperposes += nb;
+                groupe.forEach(({
+                    element
+                }) => {
+                    element.dataset.nbSuperposes = nb;
+                });
+            }
+        });
+
+        console.log(`Superpositions (tol 5km): ${Object.keys(marqueursParPosition).length} positions uniques, ${nbGroupesSuperposes} édifices groupés`);
+        if (totalDebug === 0) console.warn('Aucun marqueur avec _lngLat valide');
     }
-  });
-
-  // Assigner
-  Object.entries(groupes).forEach(([key, nb]) => {
-    if (nb > 1) {
-      nbGroupes++;
-      Object.entries(tousLesMarqueurs).forEach(([id, data]) => {
-        if (data.groupKey === key) {
-          data.element.dataset.nbSuperposes = nb;
-        }
-      });
-    }
-  });
-
-  console.log(`Superpositions: ${nbGroupes} groupes (tolérance ${tolerance}°)`);
-}
-
 
 
 
