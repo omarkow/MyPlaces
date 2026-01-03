@@ -174,32 +174,24 @@ if (typeof mapboxgl === "undefined") {
                 edifice.images
             );
             if (edifice.lng && edifice.lat) {
-                creerMarqueur({
-                    ...edifice,
-                    images: Array.isArray(edifice.images) ?
-                        edifice.images : [],
-                    coords: {
-                        lng: parseFloat(edifice.lng),
-                        lat: parseFloat(edifice.lat),
-                    },
-                });
+                creerMarqueur(edifice);
             }
         });
         console.log('Tous marqueurs chargés, calcul superpositions...');
         calculerEtAssignerSuperpositions();
     }
 
-    function creerMarqueur(edifice) {
+    function creerMarqueur(edifice) { // ← Paramètre unique
         const el = document.createElement('div');
         el.className = 'marker';
         el.style.cursor = 'pointer';
+
         const categorie = edifice.categorie || 'autres';
         el.dataset.categorie = categorie;
-        el.classList.add('marker--' + categorie);
-
-        // ✅ STOCKER les coordonnées DIRECTEMENT sur l'élément
+        el.classList.add(`marker--${categorie}`);
         el.dataset.lng = edifice.lng;
         el.dataset.lat = edifice.lat;
+        el.dataset.id = edifice.id; // Pour récupération
 
         const lng = parseFloat(edifice.lng);
         const lat = parseFloat(edifice.lat);
@@ -220,11 +212,8 @@ if (typeof mapboxgl === "undefined") {
             };
         }
 
-        // Stocker l'ID sur l'élément pour récupération dynamique
-        el.dataset.id = edifice.id;
-
-        // Événements dynamiques - popup créé à chaque survol
-        el.addEventListener('mouseenter', () => {
+        // Événements DYNAMIQUES corrigés
+        el.addEventListener('mouseenter', function() {
             const nbSuperposes = parseInt(el.dataset.nbSuperposes || 1);
             const edificeId = el.dataset.id;
             const edificeData = tousLesMarqueurs[edificeId];
@@ -242,17 +231,22 @@ if (typeof mapboxgl === "undefined") {
                 .setLngLat([parseFloat(el.dataset.lng), parseFloat(el.dataset.lat)])
                 .setHTML(popupContent)
                 .addTo(map);
-            el._currentPopup = popup; // Stockage pour suppression
+            el._currentPopup = popup;
         });
 
-        el.addEventListener('mouseleave', () => {
+        el.addEventListener('mouseleave', function() {
             if (el._currentPopup) {
                 el._currentPopup.remove();
                 delete el._currentPopup;
             }
         });
 
+        el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            afficherDetails(edifice);
+        });
     }
+
 
 
 
