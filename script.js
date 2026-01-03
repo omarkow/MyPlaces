@@ -1,10 +1,16 @@
-// 1. INITIALISATION & VARIABLES GLOBALES
+// TOKEN ABSOLUMENT PREMIER
+mapboxgl.accessToken = 'pk.eyJ1Ijoib21hcmtvdyIsImEiOiJjbWpuaDd5ejUxYmE4M2VzZDRiNjU0dWIzIn0.1MkpX6vH8AytjKHfBAwvWQ';
+
+console.log("🚀 Début script.js v2.0");
+console.log('🔑 Token Mapbox:', mapboxgl.accessToken.substring(0, 20) + '... (' + mapboxgl.accessToken.length + ' chars)');
+
+// Variables globales
 let currentUser = null;
 let tempExistingImages = [];
 let currentImages = [];
 let currentIndex = 0;
 let geocoder = null;
-let tousLesMarqueurs = {}; // { id_edifice: { element, categorie } }
+let tousLesMarqueurs = {};
 
 function debounce(func, wait) {
     let timeout;
@@ -28,9 +34,6 @@ const categorieLabels = {
 };
 
 console.log("🚀 Début script.js v2.0");
-
-mapboxgl.accessToken = 'pk.eyJ1Ijoib21hcmtvdyIsImEiOiJjbWpuaDd5ejUxYmE4M2VzZDRiNjU0dWIzIn0.1MkpX6vH8AytjKHfBAwvWQ';
-console.log('🔑 Token Mapbox chargé:', mapboxgl.accessToken ? 'OK (' + mapboxgl.accessToken.length + ' chars)' : '❌ MANQUANT');
 
 if (typeof mapboxgl === "undefined") {
     console.error("❌ mapboxgl NON CHARGÉ ! Vérifie index.html");
