@@ -84,7 +84,6 @@ if (typeof mapboxgl === "undefined") {
 
     map.on("load", () => {
         console.log("✅ Carte chargée - load event OK");
-
         geocoder = new MapboxGeocoder({
             accessToken: mapboxgl.accessToken,
             mapboxgl: mapboxgl,
@@ -150,36 +149,37 @@ if (typeof mapboxgl === "undefined") {
 
     // 3. CHARGEMENT & MARQUEURS
     async function loadEdifices() {
+        console.log('Début loadEdifices...');
         const {
             data,
             error
         } = await supabaseClient
-            .from("edifices")
-            .select("*");
+            .from('edifices')
+            .select('*');
+
         if (error) {
-            console.error(error);
+            console.error('Supabase error:', error);
             return;
         }
 
-        document.querySelectorAll(".marker").forEach((m) => m.remove());
-        tousLesMarqueurs[edifice.id] = {
-            element: el,
-            categorie,
-            edifice
-        };
+        console.log('Données reçues:', data.length, 'édifices');
 
-        data.forEach((edifice) => {
-            console.log(
-                `Chargement de ${edifice.nom}, photos:`,
-                edifice.images
-            );
+        // Nettoyage anciens marqueurs
+        document.querySelectorAll('.marker').forEach(m => m.remove());
+        tousLesMarqueurs = {}; // Reset
+
+        // Création marqueurs
+        data.forEach(edifice => {
+            console.log('Chargement:', edifice.nom);
             if (edifice.lng && edifice.lat) {
                 creerMarqueur(edifice);
             }
         });
-        console.log('Tous marqueurs chargés, calcul superpositions...');
+
+        console.log('Tous marqueurs chargés!');
         calculerEtAssignerSuperpositions();
     }
+
 
     function creerMarqueur(edifice) { // ← Paramètre unique
         const el = document.createElement('div');
