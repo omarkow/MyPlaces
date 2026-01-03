@@ -124,6 +124,24 @@ if (typeof mapboxgl === "undefined") {
 
         loadEdifices();
         updateUIForRole();
+
+        // ======== ZOOM CONTROLS ========
+        const zoomInBtn = document.getElementById("zoom-in-btn");
+        const zoomOutBtn = document.getElementById("zoom-out-btn");
+
+        if (zoomInBtn) {
+            zoomInBtn.addEventListener("click", () => {
+                map.zoomIn();
+            });
+        }
+
+        if (zoomOutBtn) {
+            zoomOutBtn.addEventListener("click", () => {
+                map.zoomOut();
+            });
+        }
+        // ======== FIN ZOOM CONTROLS ========
+
     });
 
     map.on("error", (e) => {
@@ -835,5 +853,4 @@ if (typeof mapboxgl === "undefined") {
             appliquerFiltres();
         };
     }
-
 }
