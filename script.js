@@ -181,7 +181,7 @@ if (typeof mapboxgl === "undefined") {
     }
 
 
-    function creerMarqueur(edifice) { // ← Paramètre unique
+    function creerMarqueur(edifice) {
         const el = document.createElement('div');
         el.className = 'marker';
         el.style.cursor = 'pointer';
@@ -191,7 +191,7 @@ if (typeof mapboxgl === "undefined") {
         el.classList.add(`marker--${categorie}`);
         el.dataset.lng = edifice.lng;
         el.dataset.lat = edifice.lat;
-        el.dataset.id = edifice.id; // Pour récupération
+        el.dataset.id = edifice.id;
 
         const lng = parseFloat(edifice.lng);
         const lat = parseFloat(edifice.lat);
@@ -212,32 +212,39 @@ if (typeof mapboxgl === "undefined") {
             };
         }
 
-        // Événements DYNAMIQUES corrigés
+        // ANTI-CLIGNOTEMENT + STABLE
+        let hoverTimeout;
         el.addEventListener('mouseenter', function() {
-            const nbSuperposes = parseInt(el.dataset.nbSuperposes || 1);
-            const edificeId = el.dataset.id;
-            const edificeData = tousLesMarqueurs[edificeId];
-            const nom = edificeData ? edificeData.edifice.nom : 'Édifice inconnu';
+            clearTimeout(hoverTimeout);
+            hoverTimeout = setTimeout(() => {
+                if (el._currentPopup) return; // Bloque multiples
 
-            let popupContent = `<strong>${nom}</strong>`;
-            if (nbSuperposes > 1) {
-                popupContent += `<br><small><em>${nbSuperposes} édifices ici. Zoomez pour les séparer !</em></small>`;
-            }
+                const nbSuperposes = parseInt(el.dataset.nbSuperposes || 1);
+                const edificeId = el.dataset.id;
+                const edificeData = tousLesMarqueurs[edificeId];
+                const nom = edificeData ? edificeData.edifice.nom : 'Édifice';
 
-            const popup = new mapboxgl.Popup({
-                    closeButton: false,
-                    offset: 25
-                })
-                .setLngLat([parseFloat(el.dataset.lng), parseFloat(el.dataset.lat)])
-                .setHTML(popupContent)
-                .addTo(map);
-            el._currentPopup = popup;
+                let content = `<strong>${nom}</strong>`;
+                if (nbSuperposes > 1) {
+                    content += `<br><small><em>${nbSuperposes} édifices. Zoomez!</em></small>`;
+                }
+
+                el._currentPopup = new mapboxgl.Popup({
+                        closeButton: false,
+                        offset: 25,
+                        className: 'stable-popup'
+                    })
+                    .setLngLat([lng, lat])
+                    .setHTML(content)
+                    .addTo(map);
+            }, 200); // Délai anti-rapide
         });
 
         el.addEventListener('mouseleave', function() {
+            clearTimeout(hoverTimeout);
             if (el._currentPopup) {
                 el._currentPopup.remove();
-                delete el._currentPopup;
+                el._currentPopup = null;
             }
         });
 
@@ -247,11 +254,11 @@ if (typeof mapboxgl === "undefined") {
         });
     }
 
-    function calculerEtAssignerSuperpositions() {
-        const tolerance = 0.001;
-        const marqueursParPosition = {};
 
-        // Grouper PAR LES DONNÉES dataset.lng/lat (PAS _lngLat !)
+    function calculerEtAssignerSuperpositions() {
+        const tolerance = 0.001; // 100m
+        const marqueursParPosition = {}; // Grouper PAR LES DONNÉES dataset.lng|lat (PAS lngLat !)
+
         Object.values(tousLesMarqueurs).forEach(({
             element
         }) => {
@@ -259,7 +266,7 @@ if (typeof mapboxgl === "undefined") {
             const lat = parseFloat(element.dataset.lat);
             if (isNaN(lng) || isNaN(lat)) return;
 
-            // Grille ~1km de précision
+            // Grille 1km de précision
             const key = `${Math.round(lng * 1000)},${Math.round(lat * 1000)}`;
             if (!marqueursParPosition[key]) marqueursParPosition[key] = [];
             marqueursParPosition[key].push(element);
@@ -268,17 +275,24 @@ if (typeof mapboxgl === "undefined") {
         let nbGroupesSuperposes = 0;
         Object.values(marqueursParPosition).forEach(groupe => {
             const nb = groupe.length;
-            if (nb > 1) {
-                nbGroupesSuperposes++;
-                groupe.forEach(element => {
-                    element.dataset.nbSuperposes = nb;
-                    console.log(`✓ ${nb} édifices assignés à`, element.dataset.lng, element.dataset.lat);
-                });
-            }
+            if (nb > 1) nbGroupesSuperposes++;
+
+            // ← AJOUT ICI (remplace ancien forEach)
+            groupe.forEach((element, index) => {
+                element.dataset.nbSuperposes = nb;
+                element.classList.remove('clustered'); // Reset
+                if (nb > 1) {
+                    element.classList.add('clustered');
+                    element.title = `${nb} édifices superposés`;
+                }
+            });
+
+            console.log(`${nb} édifices assignés`, groupe[0].dataset.lng, groupe[0].dataset.lat);
         });
 
-        console.log(`✅ Superpositions détectées: ${nbGroupesSuperposes} groupes (tolérance 5km)`);
+        console.log(`✅ Superpositions détectées: ${nbGroupesSuperposes} groupes (tolérance ${tolerance * 111}km)`);
     }
+
 
     // 4. STORAGE & COMPRESSION
     async function uploadImage(file) {
