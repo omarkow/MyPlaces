@@ -237,38 +237,38 @@ if (typeof mapboxgl === "undefined") {
 
 
     function calculerEtAssignerSuperpositions() {
-        const marqueursParPosition = {};
-        const tolerance = 0.0001; // ~10m, ajustez si besoin
+  const marqueursParPosition = {};
+  const tolerance = 0.0001; // ~10m
 
-        // Grouper par position
-        Object.values(tousLesMarqueurs).forEach(({
-            element,
-            categorie
-        }, id) => {
-            if (!element._lngLat) return;
-            const key = `${parseFloat(element._lngLat.lng.toFixed(6))},${parseFloat(element._lngLat.lat.toFixed(6))}`;
-            if (!marqueursParPosition[key]) marqueursParPosition[key] = [];
-            marqueursParPosition[key].push({
-                element,
-                id,
-                categorie
-            });
-        });
-
-        // Assigner nbSuperposes à chaque élément
-        Object.keys(marqueursParPosition).forEach(key => {
-            const groupe = marqueursParPosition[key];
-            const nb = groupe.length;
-            if (nb > 1) {
-                groupe.forEach(({
-                    element
-                }) => {
-                    element.dataset.nbSuperposes = nb;
-                });
-            }
-        });
-        console.log('Superpositions assignées:', Object.keys(marqueursParPosition).filter(k => marqueursParPosition[k].length > 1).length, 'groupes');
+  // Grouper par position depuis tousLesMarqueurs
+  Object.entries(tousLesMarqueurs).forEach(([id, { element, categorie }]) => {
+    if (!element || !element._lngLat) {
+      console.warn('Marqueur sans _lngLat:', id);
+      return;
     }
+    const lng = parseFloat(element._lngLat.lng.toFixed(6));
+    const lat = parseFloat(element._lngLat.lat.toFixed(6));
+    const key = `${lng},${lat}`;
+    if (!marqueursParPosition[key]) marqueursParPosition[key] = [];
+    marqueursParPosition[key].push({ element, id, categorie });
+  });
+
+  // Assigner dataset
+  let nbGroupesSuperposes = 0;
+  Object.values(marqueursParPosition).forEach(groupe => {
+    const nb = groupe.length;
+    if (nb > 1) {
+      nbGroupesSuperposes++;
+      groupe.forEach(({ element }) => {
+        element.dataset.nbSuperposes = nb;
+        console.log(`Assigné ${nb} à ${element.__gl_markerId || 'marker'}`);
+      });
+    }
+  });
+
+  console.log(`Superpositions calculées: ${nbGroupesSuperposes} groupes avec >1 édifice`);
+}
+
 
 
 
@@ -860,6 +860,9 @@ if (typeof mapboxgl === "undefined") {
                 "block" :
                 "none";
         });
+        // Réappliquer superpositions après filtres
+        setTimeout(calculerEtAssignerSuperpositions, 100);
+
     }
 
     // Bouton ouverture/fermeture panneau filtres
