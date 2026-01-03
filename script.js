@@ -142,11 +142,6 @@ if (typeof mapboxgl === "undefined") {
         }
         // ======== FIN ZOOM CONTROLS ========
 
-        // ======== STOCKER LES DONNÉES DES ÉDIFICES ========
-        window.tousLesEdifices = data || [];
-        console.log("✅ Édifices stockés globalement :", window.tousLesEdifices.length);
-        // ======== FIN STOCKAGE ========
-
     });
 
     map.on("error", (e) => {
@@ -214,28 +209,11 @@ if (typeof mapboxgl === "undefined") {
         }
 
         el.addEventListener("mouseenter", () => {
-            // Récupérer tous les édifices au même endroit
-            const edificesSameLocation = (window.tousLesEdifices || []).filter(e =>
-                Math.round(e.lng * 10000) === Math.round(edifice.coords.lng * 10000) &&
-                Math.round(e.lat * 10000) === Math.round(edifice.coords.lat * 10000)
-            );
-
-            let htmlContent = "<div style='max-width: 220px;'>";
-            if (edificesSameLocation.length > 0) {
-                edificesSameLocation.forEach(e => {
-                    htmlContent += `<strong style="font-size: 13px; color: var(--accent-color); display: block; margin-bottom: 6px;">• ${e.nom}</strong>`;
-                });
-            } else {
-                htmlContent += `<strong style="font-size: 14px; color: var(--accent-color);">${edifice.nom}</strong>`;
-            }
-            htmlContent += "</div>";
-
             popup
                 .setLngLat([edifice.coords.lng, edifice.coords.lat])
-                .setHTML(htmlContent)
+                .setHTML(`<strong>${edifice.nom}</strong>`)
                 .addTo(map);
         });
-
 
         el.addEventListener("mouseleave", () => popup.remove());
 
