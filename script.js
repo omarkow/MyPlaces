@@ -599,7 +599,12 @@ if (typeof mapboxgl === "undefined") {
             alert("Erreur : " + error.message);
         } else {
             alert("Succès !");
-            location.reload();
+            loadEdifices();
+            sidePanel.classList.add("panel-hidden");
+            setTimeout(() => {
+                sidePanel.style.visibility = "hidden";
+            }, 400);
+            alert("Succès !");
         }
     }
 
