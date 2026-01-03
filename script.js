@@ -96,6 +96,12 @@ if (typeof mapboxgl === "undefined") {
 
     console.log("🗺️ Map créée");
 
+    console.log('Token Mapbox:', mapboxgl.accessToken ? 'OK' : 'MANQUANT');
+    if (!mapboxgl.accessToken) {
+        console.error('❌ Token Mapbox manquant !');
+        return;
+    }
+
     map.on('load', () => {
         console.log("✅ Carte chargée - load event OK");
 
