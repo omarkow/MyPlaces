@@ -167,6 +167,14 @@ if (typeof mapboxgl === "undefined") {
 
     });
 
+    map.on('zoomend', () => {
+        Object.values(tousLesMarqueurs).forEach(({
+            element
+        }) => {
+            if (element.updateStackIndicator) element.updateStackIndicator();
+        });
+    });
+
     map.on("error", (e) => {
         console.error("❌ Erreur Mapbox:", e);
     });
@@ -231,6 +239,28 @@ if (typeof mapboxgl === "undefined") {
             return count;
         }
 
+        // 👥 INDICATEUR SUPERPOSITIONS
+        function updateStackIndicator() {
+            const count = compterSuperposes(lng, lat);
+            if (count > 1) {
+                el.classList.add('stacked-marker');
+                el.title = `${count} édifices ici - zoomez pour séparer !`;
+                if (!el.querySelector('.stack-badge')) {
+                    const badge = document.createElement('div');
+                    badge.className = 'stack-badge';
+                    badge.textContent = count;
+                    el.appendChild(badge);
+                } else {
+                    el.querySelector('.stack-badge').textContent = count;
+                }
+            } else {
+                el.classList.remove('stacked-marker');
+                el.querySelector('.stack-badge')?.remove();
+                el.title = '';
+            }
+        }
+        updateStackIndicator(); // Initial call
+
         const lng = parseFloat(edifice.lng);
         const lat = parseFloat(edifice.lat);
         if (isNaN(lng) || isNaN(lat)) {
@@ -255,15 +285,12 @@ if (typeof mapboxgl === "undefined") {
         }
 
         el.addEventListener('mouseenter', () => {
+            updateStackIndicator(); // Refresh count
             const nbSuperposes = compterSuperposes(lng, lat);
             const estSuperpose = nbSuperposes > 1;
-            popup
-                .setLngLat([lng, lat])
-                .setHTML(`
-        <strong>${edifice.nom}</strong>
-        ${estSuperpose ? `<br><small><em>${nbSuperposes} édifices superposés. Zoomez pour les voir tous !</em></small>` : ''}
-      `)
-                .addTo(map);
+            popup.setLngLat([lng, lat]).setHTML(`
+    **${edifice.nom}**${estSuperpose ? `<br><em>${nbSuperposes} points superposés ici</em>` : ''}
+  `).addTo(map);
         });
 
         el.addEventListener('mouseleave', () => {
