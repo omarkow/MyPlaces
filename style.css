@@ -793,7 +793,7 @@ input, textarea {
 /* Responsive - mobiles */
 @media (max-width: 768px) {
   .zoom-controls {
-    top: 80px;
+    top: 280px;    /* ← Au lieu de 80px */
     left: 10px;
     gap: 6px;
   }
@@ -827,29 +827,45 @@ input, textarea {
   position: relative !important;
 }
 
+/* Mode édition : croix moderne, toujours visible mais subtile */
 #preview-thumbnails.edit-mode .photo-delete-btn {
   position: absolute !important;
-  top: -6px !important;
-  right: -6px !important;
-  width: 16px !important;
-  height: 16px !important;
-  background: rgba(184, 134, 11, 0.95) !important;  /* Or discret */
-  color: white !important;
-  border: 1px solid white !important;
-  border-radius: 50% !important;
+  top: 6px !important;
+  right: 6px !important;
+  width: 20px !important;
+  height: 20px !important;
+  background: rgba(15, 23, 42, 0.85) !important; /* anthracite élégant */
+  color: #f8fafc !important;                     /* blanc neige */
+  border: 1px solid rgba(148, 163, 184, 0.4) !important; /* contour fin */
+  border-radius: 999px !important;              /* pastille parfaite */
   font-size: 11px !important;
-  font-weight: bold !important;
+  font-weight: 400 !important;                  /* trait délicat */
+  line-height: 1 !important;
   cursor: pointer !important;
-  opacity: 1 !important;  /* ← TOUJOURS visible */
-  transition: all 0.2s ease !important;
+  opacity: 0.75 !important;                     /* ✅ TOUJOURS visible, subtile */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(6px) !important;        /* verre dépoli premium */
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; /* mouvement fluide */
   z-index: 20 !important;
 }
 
+/* Survol : juste un peu plus vive */
 #preview-thumbnails.edit-mode .photo-delete-btn:hover {
-  transform: scale(1.2) !important;
-  background: #B8860B !important;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+  opacity: 1 !important;
+  transform: translateY(-1px) scale(1.05) !important;
+  background: rgba(15, 23, 42, 0.95) !important;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.35) !important;
 }
+
+/* Vignette au hover
+#preview-thumbnails img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.2);
+}
+*/
 
 .preview-thumbnails .photo-preview-wrapper {
   position: relative !important;
@@ -857,47 +873,9 @@ input, textarea {
   margin: 5px !important;
 }
 
-.preview-thumbnails .photo-delete-btn {
-  position: absolute !important;
-  top: -8px !important;  /* Ajusté pour coin net */
-  right: -8px !important;
-  width: 18px !important;
-  height: 18px !important;
-  background: rgba(184, 134, 11, 0.95) !important;
-  color: white !important;
-  border: 2px solid white !important;  /* Bordure plus épaisse */
-  border-radius: 50% !important;
-  font-size: 12px !important;
-  font-weight: bold !important;
-  cursor: pointer !important;
-  opacity: 0.9 !important;  /* Toujours visible */
-  transition: all 0.2s ease !important;
-  z-index: 25 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.preview-thumbnails .photo-delete-btn:hover {
-  transform: scale(1.2) !important;
-  background: #B8860B !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
-}
-
 .preview-thumbnails img {
   border: 2px solid transparent !important;  /* Espace pour croix */
 }
-
-
-
-
-.photo-preview-wrapper:hover .photo-delete-btn,
-.photo-delete-btn:hover {
-  opacity: 1 !important;
-  transform: scale(1.1) !important;
-  background: #B8860B !important;
-}
-
 
 #preview-thumbnails img:hover { 
   transform: scale(1.05); 
@@ -960,6 +938,3 @@ input, textarea {
     font-size: 10px !important;
   }
 }
-/* ===========================================
-   FIN DU FICHIER style.css
-   =========================================== */
