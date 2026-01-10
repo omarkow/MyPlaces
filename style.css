@@ -851,3 +851,63 @@ input, textarea {
   transform: scale(1.05); 
   box-shadow: 0 4px 12px rgba(184,134,11,0.3); 
 }
+
+/* ===========================================
+   👥 INDICATEUR SUPERPOSITIONS MARQUEURS
+   =========================================== */
+
+/* Animation pulse pour attirer l'attention */
+@keyframes pulse-stack {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255,215,0,0.4), 0 0 20px rgba(255,215,0,0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(255,215,0,0.2), 0 0 30px rgba(255,215,0,0.2); }
+}
+
+/* Marqueur avec superpositions */
+.stacked-marker {
+  box-shadow: 
+    0 0 0 3px rgba(255,215,0,0.5), 
+    0 0 20px rgba(255,215,0,0.4) !important;
+  animation: pulse-stack 2.5s ease-in-out infinite !important;
+}
+
+/* Badge numérique */
+.stack-badge {
+  position: absolute !important;
+  top: -10px !important;
+  right: -10px !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  background: linear-gradient(135deg, #ff4500, #ff6347) !important;
+  color: white !important;
+  border: 2px solid white !important;
+  border-radius: 50% !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 8px rgba(255,69,0,0.4) !important;
+  z-index: 1000 !important;
+  cursor: pointer !important;
+}
+
+/* Hover badge */
+.stacked-marker:hover .stack-badge,
+.stack-badge:hover {
+  transform: scale(1.3) !important;
+  background: linear-gradient(135deg, var(--accent-color), #ff4500) !important;
+  box-shadow: 0 4px 15px rgba(184,134,11,0.6) !important;
+  animation: none !important;
+}
+
+/* Mobile : badge plus petit */
+@media (max-width: 768px) {
+  .stack-badge {
+    min-width: 20px !important;
+    height: 20px !important;
+    font-size: 10px !important;
+  }
+}
+/* ===========================================
+   FIN DU FICHIER style.css
+   =========================================== */
