@@ -305,6 +305,9 @@ if (typeof mapboxgl === "undefined") {
             return;
         }
 
+        document.getElementById('edit-lng').value = edificeData.lng || '';
+        document.getElementById('edit-lat').value = edificeData.lat || '';
+
         console.log('Peuplement des champs avec:', edificeData);
 
         const nomInput = document.getElementById('edit-nom');
@@ -411,6 +414,30 @@ if (typeof mapboxgl === "undefined") {
         <div id="preview-thumbnails" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;"></div>
     </div>`;
         populateFormFields(edificeData);
+
+        // Geocoder édition : corrige adresse → met à jour lng/lat
+        if (isEdit) {
+            const editGeocoderContainer = document.createElement('div');
+            editGeocoderContainer.id = 'edit-geocoder';
+            document.getElementById('edit-adresse').parentNode.appendChild(editGeocoderContainer);
+
+            const editGeocoder = new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                mapboxgl: mapboxgl,
+                placeholder: "Corriger adresse (GPS auto)",
+                marker: false,
+            });
+            editGeocoderContainer.appendChild(editGeocoder.onAdd(map));
+
+            editGeocoder.on("result", (e) => {
+                const coords = e.result.geometry.coordinates;
+                document.getElementById("edit-lng").value = coords[0];
+                document.getElementById("edit-lat").value = coords[1];
+            });
+        }
+
+
+
         const fileLabel = document.getElementById("file-label");
         fileLabel.onmouseenter = () => {
             fileLabel.style.background = "rgba(184, 134, 11, 0.15)";
@@ -635,7 +662,6 @@ if (typeof mapboxgl === "undefined") {
             setTimeout(() => {
                 sidePanel.style.visibility = "hidden";
             }, 400);
-            alert("Succès !");
         }
     }
 
