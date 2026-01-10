@@ -461,42 +461,22 @@ if (typeof mapboxgl === "undefined") {
 
         // 📸 SUPPRESSION PHOTOS EXISTANTES
         const previewContainer = document.getElementById('preview-thumbnails');
+        
         if (previewContainer && tempExistingImages.length > 0) {
             previewContainer.innerHTML = ''; // Vider
 
             tempExistingImages.forEach((url, index) => {
                 const imgWrapper = document.createElement('div');
-                imgWrapper.style.cssText = 'position:relative;display:inline-block;margin:5px;';
 
+                imgWrapper.className = 'photo-preview-wrapper';  
                 const img = document.createElement('img');
                 img.src = url;
-                img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #ddd;';
-
                 const deleteBtn = document.createElement('button');
-                deleteBtn.innerHTML = '×'; 
-                deleteBtn.className = 'photo-delete-btn';  
+                deleteBtn.innerHTML = '×';
+                deleteBtn.className = 'photo-delete-btn';
                 deleteBtn.title = 'Supprimer cette photo';
-
-                // Suppression Storage
-                let deletedImages = []; // Global pour mémoriser supprimées
-
-                deleteBtn.onclick = async (e) => {
-                    e.stopPropagation();
-
-                    const confirmed = confirm('Supprimer définitivement cette photo ?');
-                    if (!confirmed) return;
-
-                    const url = tempExistingImages[index];
-                    if (await deleteImageFromStorage(url)) {
-                        tempExistingImages.splice(index, 1);
-                        deletedImages.push(url); // Mémorise pour log
-                        imgWrapper.remove();
-                        console.log(`🗑️ Photo supprimée DB+Storage (${tempExistingImages.length} restantes)`);
-                    }
-                };
-
-
-                imgWrapper.append(img, deleteBtn);
+                imgWrapper.appendChild(img);
+                imgWrapper.appendChild(deleteBtn);
                 previewContainer.appendChild(imgWrapper);
             });
         }
@@ -883,27 +863,41 @@ if (typeof mapboxgl === "undefined") {
         }
     });
 
-    document.addEventListener("change", (e) => {
-        if (e.target && e.target.id === "file-upload") {
-            const preview = document.getElementById("preview-thumbnails");
-            const files = e.target.files;
-            if (files) {
-                Array.from(files).forEach((file) => {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const img = document.createElement("img");
-                        img.src = event.target.result;
-                        img.style.width = "50px";
-                        img.style.height = "50px";
-                        img.style.objectFit = "cover";
-                        img.style.opacity = "0.5";
-                        preview.appendChild(img);
-                    };
-                    reader.readAsDataURL(file);
-                });
+    document.addEventListener('change', (e) => {
+  if (e.target.id === 'file-upload') {
+    const preview = document.getElementById('preview-thumbnails');
+    const files = e.target.files;
+    if (files) {
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const imgWrapper = document.createElement('div');
+          imgWrapper.className = 'photo-preview-wrapper';  // ← Classe CSS
+          const img = document.createElement('img');
+          img.src = event.target.result;
+          img.style.opacity = '1';  // Pleine opacité
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.innerHTML = '×';
+          deleteBtn.className = 'photo-delete-btn';
+          deleteBtn.title = 'Supprimer cette photo';
+          deleteBtn.onclick = (e) => {  // Même logique suppression
+            e.stopPropagation();
+            if (confirm('Supprimer cette photo ?')) {
+              imgWrapper.remove();
             }
-        }
-    });
+          };
+          
+          imgWrapper.appendChild(img);
+          imgWrapper.appendChild(deleteBtn);
+          preview.appendChild(imgWrapper);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+});
+
 
     // Fermeture panneau par clic sur la carte
     const mapContainer = document.getElementById('map-container');
