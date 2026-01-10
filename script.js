@@ -8,10 +8,10 @@ let tousLesMarqueurs = {}; // { id_edifice: { element, categorie } }
 
 const categorieLabels = {
     'culte': 'Lieu de culte',
-    'chateaux': 'Châteaux, palais et demeures',
+    'chateaux': 'Châteaux, palais et monuments',
     'historique': 'Sites archéologiques ou historiques',
     'panorama': 'Panorama et paysages',
-    'plages': 'Plages et côtes',
+    'plages': 'Plages',
     'autres': 'Autres'
 };
 
@@ -380,10 +380,10 @@ if (typeof mapboxgl === "undefined") {
     <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-color); opacity: 0.7;">Catégorie</label>
     <select id="edit-categorie" class="form-input" style="width: 100%; padding: 12px 14px; border: 1px solid rgba(184, 134, 11, 0.2); border-radius: 6px; background: var(--bg-color); color: var(--text-color); font-size: 14px;">
         <option value="culte">Lieu de culte</option>
-        <option value="chateaux">Châteaux, palais et demeures</option>
+        <option value="chateaux">Châteaux, palais et monuments</option>
         <option value="historique">Sites archéologiques ou historiques</option>
         <option value="panorama">Panorama et paysages</option>
-        <option value="plages">Plages et côtes</option>
+        <option value="plages">Plages</option>
         <option value="autres">Autres</option>
     </select>
 </div>
