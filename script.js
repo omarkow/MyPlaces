@@ -473,14 +473,11 @@ if (typeof mapboxgl === "undefined") {
                 img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #ddd;';
 
                 const deleteBtn = document.createElement('button');
-                deleteBtn.innerHTML = '❌';
-                deleteBtn.style.cssText = `
-      position:absolute;top:2px;right:2px;background:rgba(220,53,69,0.9);color:white;
-      border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px;
-      transition:all 0.2s;
-    `;
+                deleteBtn.innerHTML = '×'; 
+                deleteBtn.className = 'photo-delete-btn';  
                 deleteBtn.title = 'Supprimer cette photo';
-                // 👇 NOUVELLE VERSION avec suppression Storage
+
+                // Suppression Storage
                 let deletedImages = []; // Global pour mémoriser supprimées
 
                 deleteBtn.onclick = async (e) => {
