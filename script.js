@@ -167,14 +167,6 @@ if (typeof mapboxgl === "undefined") {
 
     });
 
-    map.on('zoomend', () => {
-        Object.values(tousLesMarqueurs).forEach(({
-            element
-        }) => {
-            if (element.updateStackIndicator) element.updateStackIndicator();
-        });
-    });
-
     map.on("error", (e) => {
         console.error("❌ Erreur Mapbox:", e);
     });
@@ -239,28 +231,6 @@ if (typeof mapboxgl === "undefined") {
             return count;
         }
 
-        // 👥 INDICATEUR SUPERPOSITIONS
-        function updateStackIndicator() {
-            const count = compterSuperposes(lng, lat);
-            if (count > 1) {
-                el.classList.add('stacked-marker');
-                el.title = `${count} édifices ici - zoomez pour séparer !`;
-                if (!el.querySelector('.stack-badge')) {
-                    const badge = document.createElement('div');
-                    badge.className = 'stack-badge';
-                    badge.textContent = count;
-                    el.appendChild(badge);
-                } else {
-                    el.querySelector('.stack-badge').textContent = count;
-                }
-            } else {
-                el.classList.remove('stacked-marker');
-                el.querySelector('.stack-badge')?.remove();
-                el.title = '';
-            }
-        }
-        updateStackIndicator(); // Initial call
-
         const lng = parseFloat(edifice.lng);
         const lat = parseFloat(edifice.lat);
         if (isNaN(lng) || isNaN(lat)) {
@@ -285,12 +255,15 @@ if (typeof mapboxgl === "undefined") {
         }
 
         el.addEventListener('mouseenter', () => {
-            updateStackIndicator(); // Refresh count
             const nbSuperposes = compterSuperposes(lng, lat);
             const estSuperpose = nbSuperposes > 1;
-            popup.setLngLat([lng, lat]).setHTML(`
-    **${edifice.nom}**${estSuperpose ? `<br><em>${nbSuperposes} points superposés ici</em>` : ''}
-  `).addTo(map);
+            popup
+                .setLngLat([lng, lat])
+                .setHTML(`
+        <strong>${edifice.nom}</strong>
+        ${estSuperpose ? `<br><small><em>${nbSuperposes} édifices superposés. Zoomez pour les voir tous !</em></small>` : ''}
+      `)
+                .addTo(map);
         });
 
         el.addEventListener('mouseleave', () => {
@@ -378,107 +351,206 @@ if (typeof mapboxgl === "undefined") {
 
 
     // 5. GESTION DES ÉDIFICES (FORMULAIRE + PANEL)
-    function ouvrirFormulaireEdition(lng = null, lat = null, imagesExistantes = [], id = null, edificeData = null) {
-        console.log("🎯 ouvrirFormulaireEdition reçu :", {
-            lng,
-            lat,
-            id,
-            imagesCount: imagesExistantes?.length
-        });
+    function ouvrirFormulaireEdition(
+        lng = null,
+        lat = null,
+        imagesExistantes = [],
+        id = null,
+        edificeData = null //
+    ) {
+        console.log("🎯 ouvrirFormulaireEdition reçu :");
+        console.log("   imagesExistantes :", imagesExistantes);
+        console.log("   id :", id);
 
         tempExistingImages = Array.isArray(imagesExistantes) ? [...imagesExistantes] : [];
+        console.log(
+            "   → tempExistingImages initialisé :",
+            tempExistingImages
+        );
 
         const sidePanel = document.getElementById("side-panel");
-        const finalLng = lng ?? map.getCenter().lng;
-        const finalLat = lat ?? map.getCenter().lat;
+
+        const finalLng =
+            lng !== null && lng !== undefined ? lng : map.getCenter().lng;
+        const finalLat =
+            lat !== null && lat !== undefined ? lat : map.getCenter().lat;
+
         const isEdit = id !== null;
 
-        // 👨‍💻 FORMULAIRE COMPLÈT injecté UNE FOIS
-        document.querySelector('.panel-content').innerHTML = `
-    <div style="margin-bottom:25px;">
-      <h2 style="margin:0 0 10px 0;color:var(--accent-color);font-size:28px;font-weight:600;">
-        ${isEdit ? `✏️ Modifier "${edificeData?.nom || ''}"` : '➕ Nouvel édifice'}
-      </h2>
-      
-      <div style="display:grid;gap:15px;">
-        <label style="font-size:14px;font-weight:500;color:var(--text-color);">Nom
-          <input id="edit-nom" type="text" placeholder="Nom de l'édifice" style="width:100%;padding:14px;border:1px solid rgba(184,134,11,0.3);border-radius:8px;font-size:16px;">
-        </label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-          <label>Adresse <input id="edit-adresse" type="text" placeholder="Rue, numéro" style="width:100%;padding:14px;border:1px solid rgba(184,134,11,0.3);border-radius:8px;"></label>
-          <label>Ville <input id="edit-city" type="text" placeholder="Ville" style="width:100%;padding:14px;border:1px solid rgba(184,134,11,0.3);border-radius:8px;"></label>
+        document.getElementById(
+            "panel-title"
+        ).innerHTML = `<div style="margin-bottom: 20px;">
+            <h2 style="margin: 0; font-size: 28px; font-weight: 600; color: var(--accent-color);">
+                ${isEdit ? "Modifier l'édifice" : "Nouvel édifice"}
+            </h2>
+            <div style="width: 50px; height: 3px; background: var(--accent-color); margin-top: 8px; border-radius: 2px;"></div>
+        </div>`;
+
+        document.getElementById(
+            "panel-city"
+        ).innerHTML = `<div style="display: grid; gap: 20px;">
+        <div>
+            <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-color); opacity: 0.7;">Nom de l'édifice</label>
+            <input type="text" id="edit-nom" placeholder="Nom" class="form-input" style="width: 100%; padding: 12px 14px; border: 1px solid rgba(184, 134, 11, 0.2); border-radius: 6px; background: var(--bg-color); color: var(--text-color); font-size: 14px;">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-color); opacity: 0.7;">Adresse</label>
+                <input type="text" id="edit-adresse" placeholder="Rue et numéro" class="form-input" style="width: 100%; padding: 12px 14px; border: 1px solid rgba(184, 134, 11, 0.2); border-radius: 6px; background: var(--bg-color); color: var(--text-color); font-size: 14px;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-color); opacity: 0.7;">Ville</label>
+                <input type="text" id="edit-city" placeholder="Ville" class="form-input" style="width: 100%; padding: 12px 14px; border: 1px solid rgba(184, 134, 11, 0.2); border-radius: 6px; background: var(--bg-color); color: var(--text-color); font-size: 14px;">
+            </div>
+            <div>
+    <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-color); opacity: 0.7;">Catégorie</label>
+    <select id="edit-categorie" class="form-input" style="width: 100%; padding: 12px 14px; border: 1px solid rgba(184, 134, 11, 0.2); border-radius: 6px; background: var(--bg-color); color: var(--text-color); font-size: 14px;">
+        <option value="culte">Lieu de culte</option>
+        <option value="chateaux">Châteaux, palais et monuments</option>
+        <option value="historique">Sites archéologiques ou historiques</option>
+        <option value="panorama">Panorama et paysages</option>
+        <option value="plages">Plages</option>
+        <option value="autres">Autres</option>
+    </select>
+</div>
         </div>
         <input type="hidden" id="edit-lng" value="${finalLng}">
         <input type="hidden" id="edit-lat" value="${finalLat}">
-      </div>
-      
-      <!-- 📸 PHOTOS : Zone suppression/ajout -->
-      <div style="margin:25px 0;padding:25px;border:2px dashed var(--accent-color);border-radius:12px;background:rgba(184,134,11,0.03);">
-        <label style="display:block;margin-bottom:15px;font-size:15px;font-weight:600;color:var(--accent-color);">📸 Photos</label>
-        <div id="preview-thumbnails" style="display:flex;flex-wrap:wrap;gap:10px;min-height:100px;margin-bottom:15px;"></div>
-        <label class="custom-file-upload" style="display:inline-block;padding:12px 20px;background:rgba(184,134,11,0.1);color:var(--accent-color);border:1px dashed var(--accent-color);border-radius:8px;cursor:pointer;">
-          ➕ Ajouter photos
-          <input type="file" id="file-upload" multiple accept="image/*" style="display:none;">
-        </label>
-        <div id="upload-status" style="margin-top:10px;font-size:14px;color:#666;"></div>
-        <small style="display:block;margin-top:8px;color:#888;">✋ Survolez les photos pour voir × suppression</small>
-      </div>
-      
-      <div style="display:grid;gap:15px;">
-        <label>Description 
-          <textarea id="edit-desc" rows="4" placeholder="Décrivez l'édifice..." style="width:100%;padding:14px;border:1px solid rgba(184,134,11,0.3);border-radius:8px;resize:vertical;font-family:inherit;"></textarea>
-        </label>
-        <label>Catégorie
-          <select id="edit-categorie" style="width:100%;padding:14px;border:1px solid rgba(184,134,11,0.3);border-radius:8px;font-size:16px;">
-            <option value="culte">Lieu de culte</option>
-            <option value="chateaux">Châteaux & monuments</option>
-            <option value="historique">Site historique</option>
-            <option value="panorama">Paysage</option>
-            <option value="plages">Plage</option>
-            <option value="autres">Autre</option>
-          </select>
-        </label>
-      </div>
-      
-      <div style="display:flex;gap:15px;margin-top:30px;">
-        <button id="save-btn" class="btn-submit" style="flex:1;padding:16px;font-size:16px;font-weight:600;">
-          ${isEdit ? '💾 Mettre à jour' : '✅ Créer édifice'}
-        </button>
-        <button onclick="document.getElementById('side-panel').classList.add('panel-hidden')" 
-                style="flex:1;padding:16px;border:1px solid var(--accent-color);background:transparent;color:var(--accent-color);border-radius:8px;font-size:16px;cursor:pointer;">❌ Annuler</button>
-      </div>
-    `;
+    </div>`;
 
-        // 👨‍💻 LIEN BOUTON SAUVEGARDE
-        document.getElementById('save-btn').onclick = isEdit ? () => mettreAJourEdifice(id) : sauvegarderNouvelEdifice;
+        document.getElementById(
+            "panel-description"
+        ).innerHTML = `<div style="margin-top: 20px;">
+        <label style="display: block; margin-bottom: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-color); opacity: 0.7;">Description</label>
+        <textarea id="edit-desc" placeholder="Décrivez l'édifice (histoire, caractéristiques, etc.)" class="form-input" style="width: 100%; padding: 12px 14px; border: 1px solid rgba(184, 134, 11, 0.2); border-radius: 6px; background: var(--bg-color); color: var(--text-color); font-size: 14px; min-height: 100px; resize: vertical; font-family: inherit;"></textarea>
+    </div>`;
 
+        document.getElementById(
+            "panel-image-container"
+        ).innerHTML = `<div style="margin-top: 20px;">
+        <label style="display: block; margin-bottom: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-color); opacity: 0.7;">Photos</label>
+        <label class="custom-file-upload" id="file-label" style="display: inline-block; padding: 12px 16px; background: rgba(184, 134, 11, 0.1); color: var(--accent-color); border: 1px dashed var(--accent-color); border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px;">
+            Ajouter des photos
+            <input type="file" id="file-upload" multiple accept="image/*" style="display:none;">
+        </label>
+        <div id="upload-status" style="margin-top: 8px; font-size: 12px; color: var(--accent-color); min-height: 18px;"></div>
+        <div id="preview-thumbnails" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;"></div>
+    </div>`;
         populateFormFields(edificeData);
 
-        // 👇 SUPPRESSION PHOTOS existantes
-        const previewCont = document.getElementById('preview-thumbnails');
-        tempExistingImages.forEach((url, index) => {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'photo-preview-wrapper';
-            wrapper.innerHTML = `
-        <img src="${url}" style="width:85px;height:85px;object-fit:cover;border-radius:10px;border:2px solid rgba(184,134,11,0.2);">
-        <button class="photo-delete-btn" title="Supprimer">×</button>
-      `;
-            wrapper.querySelector('.photo-delete-btn').onclick = async (e) => {
-                e.stopPropagation();
-                if (confirm('Supprimer définitivement cette photo ?')) {
+        // Geocoder édition : corrige adresse → met à jour lng/lat
+        if (isEdit) {
+            const editGeocoderContainer = document.createElement('div');
+            editGeocoderContainer.id = 'edit-geocoder';
+            document.getElementById('edit-adresse').parentNode.appendChild(editGeocoderContainer);
+
+            const editGeocoder = new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                mapboxgl: mapboxgl,
+                placeholder: "Corriger adresse (GPS auto)",
+                marker: false,
+            });
+            editGeocoderContainer.appendChild(editGeocoder.onAdd(map));
+
+            editGeocoder.on("result", (e) => {
+                const coords = e.result.geometry.coordinates;
+                document.getElementById("edit-lng").value = coords[0];
+                document.getElementById("edit-lat").value = coords[1];
+            });
+        }
+
+        // 📸 SUPPRESSION PHOTOS EXISTANTES
+        const previewContainer = document.getElementById('preview-thumbnails');
+        if (previewContainer && tempExistingImages.length > 0) {
+            previewContainer.innerHTML = ''; // Vider
+
+            tempExistingImages.forEach((url, index) => {
+                const imgWrapper = document.createElement('div');
+                imgWrapper.style.cssText = 'position:relative;display:inline-block;margin:5px;';
+
+                const img = document.createElement('img');
+                img.src = url;
+                img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #ddd;';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '❌';
+                deleteBtn.style.cssText = `
+      position:absolute;top:2px;right:2px;background:rgba(220,53,69,0.9);color:white;
+      border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px;
+      transition:all 0.2s;
+    `;
+                deleteBtn.title = 'Supprimer cette photo';
+                // 👇 NOUVELLE VERSION avec suppression Storage
+                let deletedImages = []; // Global pour mémoriser supprimées
+
+                deleteBtn.onclick = async (e) => {
+                    e.stopPropagation();
+
+                    const confirmed = confirm('Supprimer définitivement cette photo ?');
+                    if (!confirmed) return;
+
+                    const url = tempExistingImages[index];
                     if (await deleteImageFromStorage(url)) {
                         tempExistingImages.splice(index, 1);
-                        wrapper.remove();
+                        deletedImages.push(url); // Mémorise pour log
+                        imgWrapper.remove();
+                        console.log(`🗑️ Photo supprimée DB+Storage (${tempExistingImages.length} restantes)`);
                     }
-                }
-            };
-            previewCont.appendChild(wrapper);
+                };
+
+
+                imgWrapper.append(img, deleteBtn);
+                previewContainer.appendChild(imgWrapper);
+            });
+        }
+
+
+
+
+        const fileLabel = document.getElementById("file-label");
+        fileLabel.onmouseenter = () => {
+            fileLabel.style.background = "rgba(184, 134, 11, 0.15)";
+            fileLabel.style.transform = "translateY(-1px)";
+        };
+        fileLabel.onmouseleave = () => {
+            fileLabel.style.background = "rgba(184, 134, 11, 0.1)";
+            fileLabel.style.transform = "translateY(0)";
+        };
+
+        const previewCont = document.getElementById("preview-thumbnails");
+        tempExistingImages.forEach((url) => {
+            const img = document.createElement("img");
+            img.src = url;
+            img.style.width = "60px";
+            img.style.height = "60px";
+            img.style.objectFit = "cover";
+            img.style.borderRadius = "6px";
+            img.style.border = "1px solid rgba(184, 134, 11, 0.2)";
+            previewCont.appendChild(img);
         });
+
+        const adminControls = document.getElementById("admin-controls");
+        if (id) {
+            adminControls.innerHTML = `<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(184, 134, 11, 0.1);">
+                <button id="btn-update-action" style="width: 100%; padding: 12px 20px; background: var(--accent-color); color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;">
+                    Enregistrer les modifications
+                </button>
+            </div>`;
+            document.getElementById("btn-update-action").onclick = () =>
+                mettreAJourEdifice(id);
+        } else {
+            adminControls.innerHTML = `<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(184, 134, 11, 0.1);">
+                <button id="btn-save-action" style="width: 100%; padding: 12px 20px; background: var(--accent-color); color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;">
+                    Créer l'édifice
+                </button>
+            </div>`;
+            document.getElementById("btn-save-action").onclick =
+                sauvegarderNouvelEdifice;
+        }
 
         sidePanel.classList.remove("panel-hidden");
         sidePanel.style.visibility = "visible";
     }
-
 
     function afficherDetails(edifice) {
         console.log("Affichage des détails pour :", edifice.nom);
