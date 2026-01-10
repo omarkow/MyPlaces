@@ -31,6 +31,29 @@ if (typeof mapboxgl === "undefined") {
     const supabaseKey = "sb_publishable_K_gW-qcTXs3xq1l8jbQJgg_VgihdQ7l";
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
+    // 🗑️ SUPPRESSION FICHIER SUPABASE (extraire nom depuis URL)
+    async function deleteImageFromStorage(imageUrl) {
+        try {
+            // Extrait le nom du fichier depuis l'URL publique
+            const urlParts = imageUrl.split('/');
+            const fileName = urlParts[urlParts.length - 1];
+
+            const {
+                error
+            } = await supabaseClient.storage
+                .from('images-edifices')
+                .remove([fileName]);
+
+            if (error) throw error;
+            console.log(`✅ Fichier supprimé: ${fileName}`);
+            return true;
+        } catch (err) {
+            console.error('❌ Erreur suppression storage:', err);
+            return false;
+        }
+    }
+
+
     async function checkUserSession() {
         console.log("🔍 checkUserSession appelé");
         const {
@@ -436,6 +459,52 @@ if (typeof mapboxgl === "undefined") {
             });
         }
 
+        // 📸 SUPPRESSION PHOTOS EXISTANTES
+        const previewContainer = document.getElementById('preview-thumbnails');
+        if (previewContainer && tempExistingImages.length > 0) {
+            previewContainer.innerHTML = ''; // Vider
+
+            tempExistingImages.forEach((url, index) => {
+                const imgWrapper = document.createElement('div');
+                imgWrapper.style.cssText = 'position:relative;display:inline-block;margin:5px;';
+
+                const img = document.createElement('img');
+                img.src = url;
+                img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #ddd;';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '❌';
+                deleteBtn.style.cssText = `
+      position:absolute;top:2px;right:2px;background:rgba(220,53,69,0.9);color:white;
+      border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px;
+      transition:all 0.2s;
+    `;
+                deleteBtn.title = 'Supprimer cette photo';
+                // 👇 NOUVELLE VERSION avec suppression Storage
+                let deletedImages = []; // Global pour mémoriser supprimées
+
+                deleteBtn.onclick = async (e) => {
+                    e.stopPropagation();
+
+                    const confirmed = confirm('Supprimer définitivement cette photo ?');
+                    if (!confirmed) return;
+
+                    const url = tempExistingImages[index];
+                    if (await deleteImageFromStorage(url)) {
+                        tempExistingImages.splice(index, 1);
+                        deletedImages.push(url); // Mémorise pour log
+                        imgWrapper.remove();
+                        console.log(`🗑️ Photo supprimée DB+Storage (${tempExistingImages.length} restantes)`);
+                    }
+                };
+
+
+                imgWrapper.append(img, deleteBtn);
+                previewContainer.appendChild(imgWrapper);
+            });
+        }
+
+
 
 
         const fileLabel = document.getElementById("file-label");
@@ -656,6 +725,13 @@ if (typeof mapboxgl === "undefined") {
         if (error) {
             alert("Erreur : " + error.message);
         } else {
+            if (deletedImages.length > 0) {
+                console.log('📊 Session édition:', {
+                    gardees: tempExistingImages.length,
+                    supprimees: deletedImages.length,
+                    ajoutees: totalImages.length - tempExistingImages.length
+                });
+            }
             alert("Succès !");
             loadEdifices();
             sidePanel.classList.add("panel-hidden");
