@@ -1,6 +1,7 @@
 // 1. INITIALISATION & VARIABLES GLOBALES
 let currentUser = null;
 let tempExistingImages = [];
+let deletedImages = [];
 let currentImages = [];
 let currentIndex = 0;
 let geocoder = null;
@@ -475,14 +476,19 @@ if (typeof mapboxgl === "undefined") {
                 deleteBtn.innerHTML = '×';
                 deleteBtn.className = 'photo-delete-btn';
                 deleteBtn.title = 'Supprimer cette photo';
-                imgWrapper.appendChild(img);
-                imgWrapper.appendChild(deleteBtn);
-                previewContainer.appendChild(imgWrapper);
-            });
+                deleteBtn.onclick = async (e) => {
+                  e.stopPropagation();
+                  if (confirm('Supprimer cette photo ?')) {
+                    deletedImages.push(url);  // Track pour DB
+                    await deleteImageFromStorage(url);  // Efface storage MAINTENANT
+                    imgWrapper.remove();  // Visuel
+                  }
+                };
         }
 
-
-
+        const previewThumbs = document.getElementById('preview-thumbnails');
+        previewThumbs.classList.add('edit-mode');  // Active styles CSS forts
+        deletedImages = [];  // Reset suppressions pour cette édition
 
         const fileLabel = document.getElementById("file-label");
         fileLabel.onmouseenter = () => {
@@ -493,18 +499,6 @@ if (typeof mapboxgl === "undefined") {
             fileLabel.style.background = "rgba(184, 134, 11, 0.1)";
             fileLabel.style.transform = "translateY(0)";
         };
-
-        const previewCont = document.getElementById("preview-thumbnails");
-        tempExistingImages.forEach((url) => {
-            const img = document.createElement("img");
-            img.src = url;
-            img.style.width = "60px";
-            img.style.height = "60px";
-            img.style.objectFit = "cover";
-            img.style.borderRadius = "6px";
-            img.style.border = "1px solid rgba(184, 134, 11, 0.2)";
-            previewCont.appendChild(img);
-        });
 
         const adminControls = document.getElementById("admin-controls");
         if (id) {
@@ -671,6 +665,7 @@ if (typeof mapboxgl === "undefined") {
         }
 
         let totalImages = tempExistingImages ? [...tempExistingImages] : [];
+        totalImages = totalImages.filter(img => !deletedImages.includes(img));
 
         if (fileInput && fileInput.files.length > 0) {
             status.innerText = "⏳ Upload des nouvelles photos...";
