@@ -826,26 +826,31 @@ input, textarea {
   position: absolute !important;
   top: -4px !important;
   right: -4px !important;
-  width: 22px !important;
-  height: 22px !important;
-  background: rgba(184, 134, 11, 0.85) !important; /* Or discret */
+  width: 18px !important;  /* Plus petite */
+  height: 18px !important;
+  background: rgba(184, 134, 11, 0.9) !important;  /* Or discret, pas rouge */
   color: white !important;
   border: none !important;
   border-radius: 50% !important;
-  font-size: 14px !important;
+  font-size: 12px !important;  /* Police fine */
   font-weight: bold !important;
   cursor: pointer !important;
-  opacity: 0;
+  opacity: 0 !important;
   transition: all 0.2s ease !important;
-  z-index: 10 !important;
+  z-index: 20 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
+
 
 .photo-preview-wrapper:hover .photo-delete-btn,
 .photo-delete-btn:hover {
   opacity: 1 !important;
   transform: scale(1.1) !important;
-  background: var(--accent-color) !important;
+  background: #B8860B !important;
 }
+
 
 #preview-thumbnails img:hover { 
   transform: scale(1.05); 
