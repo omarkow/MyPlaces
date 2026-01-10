@@ -460,15 +460,13 @@ if (typeof mapboxgl === "undefined") {
             });
         }
 
-        // 📸 SUPPRESSION PHOTOS EXISTANTES
+               // 📸 SUPPRESSION PHOTOS EXISTANTES
         const previewContainer = document.getElementById('preview-thumbnails');
-        
         if (previewContainer && tempExistingImages.length > 0) {
             previewContainer.innerHTML = ''; // Vider
 
             tempExistingImages.forEach((url, index) => {
                 const imgWrapper = document.createElement('div');
-
                 imgWrapper.className = 'photo-preview-wrapper';  
                 const img = document.createElement('img');
                 img.src = url;
@@ -477,18 +475,23 @@ if (typeof mapboxgl === "undefined") {
                 deleteBtn.className = 'photo-delete-btn';
                 deleteBtn.title = 'Supprimer cette photo';
                 deleteBtn.onclick = async (e) => {
-                  e.stopPropagation();
-                  if (confirm('Supprimer cette photo ?')) {
-                    deletedImages.push(url);  // Track pour DB
-                    await deleteImageFromStorage(url);  // Efface storage MAINTENANT
-                    imgWrapper.remove();  // Visuel
-                  }
+                    e.stopPropagation();
+                    if (confirm('Supprimer cette photo ?')) {
+                        deletedImages.push(url);  // Track pour DB
+                        await deleteImageFromStorage(url);  // Efface storage
+                        imgWrapper.remove();  // Visuel
+                    }
                 };
+                imgWrapper.appendChild(img);
+                imgWrapper.appendChild(deleteBtn);
+                previewContainer.appendChild(imgWrapper);
+            });
         }
 
+        // Active mode édition et reset
         const previewThumbs = document.getElementById('preview-thumbnails');
-        previewThumbs.classList.add('edit-mode');  // Active styles CSS forts
-        deletedImages = [];  // Reset suppressions pour cette édition
+        previewThumbs.classList.add('edit-mode');
+        deletedImages = [];  // Reset pour cette session
 
         const fileLabel = document.getElementById("file-label");
         fileLabel.onmouseenter = () => {
