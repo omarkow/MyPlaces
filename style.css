@@ -814,3 +814,40 @@ input, textarea {
   border-radius: 6px;
   padding: 8px 12px;
 }
+
+/* 🗑️ Croix suppression photo (discrète) */
+.photo-preview-wrapper {
+  position: relative;
+  display: inline-block;
+  margin: 5px;
+}
+
+.photo-delete-btn {
+  position: absolute !important;
+  top: -4px !important;
+  right: -4px !important;
+  width: 22px !important;
+  height: 22px !important;
+  background: rgba(184, 134, 11, 0.85) !important; /* Or discret */
+  color: white !important;
+  border: none !important;
+  border-radius: 50% !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  opacity: 0;
+  transition: all 0.2s ease !important;
+  z-index: 10 !important;
+}
+
+.photo-preview-wrapper:hover .photo-delete-btn,
+.photo-delete-btn:hover {
+  opacity: 1 !important;
+  transform: scale(1.1) !important;
+  background: var(--accent-color) !important;
+}
+
+#preview-thumbnails img:hover { 
+  transform: scale(1.05); 
+  box-shadow: 0 4px 12px rgba(184,134,11,0.3); 
+}
