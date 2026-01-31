@@ -7,6 +7,7 @@ import { DOM, toggleElement, createElement, showNotification } from '../utils/do
 import { CONFIG } from '../config.js';
 import { authService } from '../services/auth.js';
 import { mapService } from '../services/map.js';
+import { apiService } from '../services/api.js';
 
 /**
  * Classe de gestion de l'interface utilisateur
@@ -27,35 +28,9 @@ export class UIManager {
     this._setupFilters();
     this._setupZoomControls();
     this._setupKeyboardShortcuts();
-    this._setupAdminButton();
 
     // Écouter les changements d'authentification
     authService.onAuthStateChange(() => this.updateForAuthState());
-  }
-
-  /**
-   * Configure le bouton admin d'ajout
-   * @private
-   */
-  _setupAdminButton() {
-    const adminBtn = DOM.adminAddButton();
-    if (adminBtn) {
-      adminBtn.onclick = () => {
-        if (!authService.isAdmin()) {
-          showNotification('Accès réservé aux administrateurs', 'error');
-          return;
-        }
-        
-        // Focus sur le geocoder pour encourager son utilisation
-        const geocoderInput = document.querySelector('.mapboxgl-ctrl-geocoder input');
-        if (geocoderInput) {
-          geocoderInput.focus();
-          showNotification('Recherchez une adresse pour ajouter un lieu', 'info');
-        } else {
-          showNotification('Le geocoder n\'est pas encore chargé', 'warning');
-        }
-      };
-    }
   }
 
   /**
@@ -64,7 +39,6 @@ export class UIManager {
   updateForAuthState() {
     const user = authService.getCurrentUser();
     const loginBtn = DOM.loginBtn();
-    const adminBtn = DOM.adminAddButton();
 
     if (!user) {
       // Utilisateur déconnecté
@@ -73,7 +47,6 @@ export class UIManager {
         loginBtn.onclick = () => this.openLoginModal();
       }
       
-      if (adminBtn) adminBtn.classList.add('hidden');
       mapService.toggleGeocoder(false);
       
       return;
@@ -86,8 +59,6 @@ export class UIManager {
     }
 
     if (authService.isAdmin()) {
-      if (adminBtn) adminBtn.classList.remove('hidden');
-      
       // Afficher le geocoder pour les admins
       // Important: le faire après un délai pour s'assurer que la carte est chargée
       setTimeout(() => {
@@ -95,7 +66,6 @@ export class UIManager {
         console.log('✅ Geocoder activé pour admin');
       }, 100);
     } else {
-      if (adminBtn) adminBtn.classList.add('hidden');
       mapService.toggleGeocoder(false);
     }
   }
@@ -485,19 +455,27 @@ export class UIManager {
    * @param {Object} edifice
    */
   openEditForm(edifice) {
-    showNotification('Fonctionnalité d\'édition à implémenter', 'info');
-    console.log('Éditer:', edifice);
+    // Import dynamique pour éviter la dépendance circulaire
+    import('./form-manager.js').then(({ formManager }) => {
+      formManager.openEditEdificeForm(edifice);
+    });
   }
 
   /**
-   * Gère la suppression d'un édifice (placeholder)
+   * Gère la suppression d'un édifice
    * @param {number} id
    */
   async handleDeleteEdifice(id) {
     if (!confirm('Voulez-vous vraiment supprimer cet édifice ?')) return;
     
-    showNotification('Fonctionnalité de suppression à implémenter', 'info');
-    console.log('Supprimer ID:', id);
+    const result = await apiService.deleteEdifice(id);
+    
+    if (result.success) {
+      this.closeSidePanel();
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    }
   }
 }
 
