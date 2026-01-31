@@ -164,15 +164,29 @@ export class MapService {
     const popup = new mapboxgl.Popup({
       offset: 25,
       closeButton: false,
-      className: 'marker-popup'
+      className: 'marker-popup',
+      maxWidth: '300px'
     }).setHTML(`<strong>${nom}</strong>`);
 
     el.addEventListener('mouseenter', () => {
       popup.setLngLat([lng, lat]).addTo(this.map);
+      
+      // FORCER le z-index après ajout
+      setTimeout(() => {
+        const popupEl = document.querySelector('.marker-popup');
+        if (popupEl) {
+          popupEl.style.zIndex = '999999';
+          const content = popupEl.querySelector('.mapboxgl-popup-content');
+          if (content) {
+            content.style.zIndex = '1000000';
+          }
+        }
+      }, 10);
     });
 
     el.addEventListener('mouseleave', () => {
       popup.remove();
+    });
     });
 
     // Stocker le marqueur
