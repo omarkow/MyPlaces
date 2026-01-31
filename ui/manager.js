@@ -208,23 +208,30 @@ export class UIManager {
       }
     }
 
-    // Afficher les contrôles admin si nécessaire
+    // Afficher les contrôles pour les utilisateurs connectés
     if (adminControls) {
       adminControls.innerHTML = '';
       
-      if (authService.isAdmin()) {
+      const currentUser = authService.getCurrentUser();
+      
+      if (currentUser) {
+        // Bouton Modifier - accessible à tous les connectés
         const editBtn = createElement('button', {
           className: 'btn-admin',
           onclick: () => this.openEditForm(edifice)
         }, '✏️ Modifier');
 
-        const deleteBtn = createElement('button', {
-          className: 'btn-admin btn-danger',
-          onclick: () => this.handleDeleteEdifice(edifice.id)
-        }, '🗑️ Supprimer');
-
         adminControls.appendChild(editBtn);
-        adminControls.appendChild(deleteBtn);
+        
+        // Bouton Supprimer - UNIQUEMENT pour les admins
+        if (authService.isAdmin()) {
+          const deleteBtn = createElement('button', {
+            className: 'btn-admin btn-danger',
+            onclick: () => this.handleDeleteEdifice(edifice.id)
+          }, '🗑️ Supprimer');
+          
+          adminControls.appendChild(deleteBtn);
+        }
       }
     }
 
