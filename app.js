@@ -67,7 +67,7 @@ class MyPlacesApp {
    * @private
    */
   async _initializeServices() {
-    // Initialiser l'authentification
+    // Initialiser l'authentification FIRST
     await authService.initialize();
 
     // Initialiser la carte
@@ -75,6 +75,17 @@ class MyPlacesApp {
 
     // Initialiser l'UI
     uiManager.initialize();
+    
+    // IMPORTANT : Attendre que la carte soit vraiment chargée
+    // avant d'ajouter le geocoder
+    if (authService.isAdmin()) {
+      console.log('👑 Admin détecté - Ajout du geocoder...');
+      // Petit délai pour être sûr que la carte est prête
+      setTimeout(() => {
+        mapService.addGeocoderToMap();
+      }, 500);
+    }
+    
     uiManager.updateForAuthState();
 
     console.log('✅ Services initialisés');
