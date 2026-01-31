@@ -191,23 +191,25 @@ class MyPlacesApp {
    */
   _setupEventListeners() {
     // Gérer le geocoder (ajout d'édifice)
-    mapService.onGeocoderResult((e) => {
-      if (!authService.isAdmin()) {
-        showNotification(
-          'Vous devez être administrateur pour ajouter un édifice',
-          'error'
-        );
-        return;
-      }
+    if (mapService.geocoder) {
+      mapService.onGeocoderResult((e) => {
+        if (!authService.isAdmin()) {
+          showNotification(
+            'Vous devez être administrateur pour ajouter un édifice',
+            'error'
+          );
+          return;
+        }
 
-      const coords = e.result.geometry.coordinates;
-      const placeName = e.result.place_name || '';
-      
-      console.log('Nouvelle localisation sélectionnée:', coords, placeName);
-      
-      // TODO: Ouvrir le formulaire de création d'édifice
-      showNotification('Formulaire de création à implémenter', 'info');
-    });
+        const coords = e.result.geometry.coordinates;
+        const placeName = e.result.place_name || '';
+        
+        console.log('Nouvelle localisation sélectionnée:', coords, placeName);
+        
+        // TODO: Ouvrir le formulaire de création d'édifice
+        showNotification('Formulaire de création à implémenter', 'info');
+      });
+    }
 
     // Écouter les changements en temps réel (optionnel)
     this._setupRealTimeUpdates();
