@@ -75,15 +75,20 @@ export class MapService {
    * @param {boolean} show
    */
   toggleGeocoder(show) {
-    if (!this.geocoder) return;
+    if (!this.geocoder) {
+      console.warn('⚠️ Geocoder pas encore initialisé');
+      return;
+    }
 
     const geocoderControl = document.querySelector('.mapboxgl-ctrl-geocoder');
     
     if (show) {
       if (!geocoderControl) {
+        // Ajouter le contrôle à la carte
         this.map.addControl(this.geocoder, 'top-left');
-        console.log('✅ Geocoder ajouté');
+        console.log('✅ Geocoder ajouté à la carte');
       } else {
+        // Juste le montrer
         geocoderControl.style.display = 'block';
         console.log('✅ Geocoder affiché');
       }
