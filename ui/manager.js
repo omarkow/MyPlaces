@@ -27,9 +27,35 @@ export class UIManager {
     this._setupFilters();
     this._setupZoomControls();
     this._setupKeyboardShortcuts();
+    this._setupAdminButton();
 
     // Écouter les changements d'authentification
     authService.onAuthStateChange(() => this.updateForAuthState());
+  }
+
+  /**
+   * Configure le bouton admin d'ajout
+   * @private
+   */
+  _setupAdminButton() {
+    const adminBtn = DOM.adminAddButton();
+    if (adminBtn) {
+      adminBtn.onclick = () => {
+        if (!authService.isAdmin()) {
+          showNotification('Accès réservé aux administrateurs', 'error');
+          return;
+        }
+        
+        // Focus sur le geocoder pour encourager son utilisation
+        const geocoderInput = document.querySelector('.mapboxgl-ctrl-geocoder input');
+        if (geocoderInput) {
+          geocoderInput.focus();
+          showNotification('Recherchez une adresse pour ajouter un lieu', 'info');
+        } else {
+          showNotification('Le geocoder n\'est pas encore chargé', 'warning');
+        }
+      };
+    }
   }
 
   /**
@@ -61,7 +87,13 @@ export class UIManager {
 
     if (authService.isAdmin()) {
       if (adminBtn) adminBtn.classList.remove('hidden');
-      mapService.toggleGeocoder(true);
+      
+      // Afficher le geocoder pour les admins
+      // Important: le faire après un délai pour s'assurer que la carte est chargée
+      setTimeout(() => {
+        mapService.toggleGeocoder(true);
+        console.log('✅ Geocoder activé pour admin');
+      }, 100);
     } else {
       if (adminBtn) adminBtn.classList.add('hidden');
       mapService.toggleGeocoder(false);
