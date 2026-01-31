@@ -321,10 +321,8 @@ async function initApp() {
   
   // Exposer l'app globalement pour le debugging
   window.myPlacesApp = app;
-}
-
-// Exposer les services globalement pour le debugging (optionnel)
-if (process.env.NODE_ENV === 'development') {
+  
+  // Exposer les services globalement pour le debugging
   window.authService = authService;
   window.apiService = apiService;
   window.mapService = mapService;
