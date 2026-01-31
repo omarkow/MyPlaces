@@ -8,6 +8,7 @@ import { authService } from './services/auth.js';
 import { apiService } from './services/api.js';
 import { mapService } from './services/map.js';
 import { uiManager } from './ui/manager.js';
+import { formManager } from './ui/form-manager.js';
 import { showNotification } from './utils/dom.js';
 
 /**
@@ -204,10 +205,10 @@ class MyPlacesApp {
         const coords = e.result.geometry.coordinates;
         const placeName = e.result.place_name || '';
         
-        console.log('Nouvelle localisation sélectionnée:', coords, placeName);
+        console.log('✨ Nouvelle localisation sélectionnée:', coords, placeName);
         
-        // TODO: Ouvrir le formulaire de création d'édifice
-        showNotification('Formulaire de création à implémenter', 'info');
+        // Ouvrir le formulaire de création
+        formManager.openNewEdificeForm(coords[0], coords[1], placeName);
       });
     }
 
