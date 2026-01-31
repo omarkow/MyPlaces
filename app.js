@@ -76,10 +76,10 @@ class MyPlacesApp {
     // Initialiser l'UI
     uiManager.initialize();
     
-    // IMPORTANT : Attendre que la carte soit vraiment chargée
-    // avant d'ajouter le geocoder
-    if (authService.isAdmin()) {
-      console.log('👑 Admin détecté - Ajout du geocoder...');
+    // IMPORTANT : Ajouter le geocoder pour TOUS les utilisateurs connectés
+    const user = authService.getCurrentUser();
+    if (user) {
+      console.log('👤 Utilisateur connecté détecté - Ajout du geocoder...');
       // Petit délai pour être sûr que la carte est prête
       setTimeout(() => {
         mapService.addGeocoderToMap();
@@ -205,9 +205,9 @@ class MyPlacesApp {
     // Gérer le geocoder (ajout d'édifice)
     if (mapService.geocoder) {
       mapService.onGeocoderResult((e) => {
-        if (!authService.isAdmin()) {
+        if (!authService.getCurrentUser()) {
           showNotification(
-            'Vous devez être administrateur pour ajouter un édifice',
+            'Vous devez être connecté pour ajouter un édifice',
             'error'
           );
           return;
@@ -218,7 +218,7 @@ class MyPlacesApp {
         
         console.log('✨ Nouvelle localisation sélectionnée:', coords, placeName);
         
-        // Ouvrir le formulaire de création
+        // Ouvrir le formulaire de création (accessible à tous les connectés)
         formManager.openNewEdificeForm(coords[0], coords[1], placeName);
       });
     }
