@@ -203,6 +203,7 @@ export class FormManager {
     const previewContainer = document.getElementById('preview-thumbnails');
     if (!previewContainer) return;
 
+    // IMPORTANT : Ajouter la classe edit-mode pour afficher les croix
     previewContainer.classList.add('edit-mode');
     previewContainer.innerHTML = '';
 
@@ -249,6 +250,9 @@ export class FormManager {
 
       const previewContainer = document.getElementById('preview-thumbnails');
       if (!previewContainer) return;
+
+      // Activer le mode édition pour afficher les croix
+      previewContainer.classList.add('edit-mode');
 
       Array.from(files).forEach((file) => {
         const reader = new FileReader();
