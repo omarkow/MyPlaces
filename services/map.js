@@ -61,13 +61,36 @@ export class MapService {
    * @private
    */
   _setupGeocoder() {
+    console.log('🔧 Configuration du geocoder...');
     this.geocoder = new MapboxGeocoder({
       accessToken: mapboxgl.accessToken,
       mapboxgl: mapboxgl,
-      placeholder: "Rajouter un édifice...",
+      placeholder: "Rechercher une adresse pour ajouter un lieu...",
       marker: false,
       language: 'fr'
     });
+    console.log('✅ Geocoder configuré');
+  }
+
+  /**
+   * Ajoute le geocoder à la carte (appelé une seule fois)
+   */
+  addGeocoderToMap() {
+    if (!this.geocoder) {
+      console.error('❌ Geocoder pas initialisé');
+      return;
+    }
+
+    // Vérifier s'il n'est pas déjà ajouté
+    const existing = document.querySelector('.mapboxgl-ctrl-geocoder');
+    if (existing) {
+      console.log('✅ Geocoder déjà présent sur la carte');
+      return;
+    }
+
+    // Ajouter le contrôle
+    this.map.addControl(this.geocoder, 'top-left');
+    console.log('✅ Geocoder ajouté à la carte');
   }
 
   /**
@@ -83,12 +106,11 @@ export class MapService {
     const geocoderControl = document.querySelector('.mapboxgl-ctrl-geocoder');
     
     if (show) {
+      // Si pas encore ajouté, l'ajouter
       if (!geocoderControl) {
-        // Ajouter le contrôle à la carte
-        this.map.addControl(this.geocoder, 'top-left');
-        console.log('✅ Geocoder ajouté à la carte');
+        this.addGeocoderToMap();
       } else {
-        // Juste le montrer
+        // Sinon juste le montrer
         geocoderControl.style.display = 'block';
         console.log('✅ Geocoder affiché');
       }
