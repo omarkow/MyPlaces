@@ -223,15 +223,13 @@ export class UIManager {
 
         adminControls.appendChild(editBtn);
         
-        // Bouton Supprimer - UNIQUEMENT pour les admins
-        if (authService.isAdmin()) {
-          const deleteBtn = createElement('button', {
-            className: 'btn-admin btn-danger',
-            onclick: () => this.handleDeleteEdifice(edifice.id)
-          }, '🗑️ Supprimer');
-          
-          adminControls.appendChild(deleteBtn);
-        }
+        // Bouton Supprimer - accessible à tous les connectés
+        const deleteBtn = createElement('button', {
+          className: 'btn-admin btn-danger',
+          onclick: () => this.handleDeleteEdifice(edifice.id)
+        }, '🗑️ Supprimer');
+        
+        adminControls.appendChild(deleteBtn);
       }
     }
 
