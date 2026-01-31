@@ -65,7 +65,7 @@ export class MapService {
     this.geocoder = new MapboxGeocoder({
       accessToken: mapboxgl.accessToken,
       mapboxgl: mapboxgl,
-      placeholder: "Rechercher une adresse pour ajouter un lieu...",
+      placeholder: "Rechercher un lieu à ajouter...",
       marker: false,
       language: 'fr'
     });
