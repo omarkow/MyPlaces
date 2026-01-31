@@ -60,11 +60,26 @@ export class UIManager {
 
     if (authService.isAdmin()) {
       // Afficher le geocoder pour les admins
-      // Important: le faire après un délai pour s'assurer que la carte est chargée
+      // Délai plus long pour s'assurer que tout est chargé
       setTimeout(() => {
+        console.log('🔧 Tentative d\'affichage du geocoder...');
         mapService.toggleGeocoder(true);
-        console.log('✅ Geocoder activé pour admin');
-      }, 100);
+        
+        // Vérification après affichage
+        setTimeout(() => {
+          const geocoderEl = document.querySelector('.mapboxgl-ctrl-geocoder');
+          if (geocoderEl) {
+            console.log('✅ Geocoder confirmé visible');
+          } else {
+            console.error('❌ Geocoder toujours invisible - Tentative de force...');
+            // Force l'ajout
+            if (mapService.geocoder && mapService.map) {
+              mapService.map.addControl(mapService.geocoder, 'top-left');
+              console.log('🔄 Geocoder ajouté en force');
+            }
+          }
+        }, 500);
+      }, 300);
     } else {
       mapService.toggleGeocoder(false);
     }
