@@ -47,8 +47,6 @@ export class UIManager {
         loginBtn.onclick = () => this.openLoginModal();
       }
       
-      mapService.toggleGeocoder(false);
-      
       return;
     }
 
@@ -56,14 +54,6 @@ export class UIManager {
     if (loginBtn) {
       loginBtn.textContent = 'Déconnexion';
       loginBtn.onclick = () => this.handleLogout();
-    }
-
-    // Si admin, afficher le geocoder
-    if (authService.isAdmin()) {
-      console.log('👤 Utilisateur admin détecté, activation du geocoder...');
-      mapService.toggleGeocoder(true);
-    } else {
-      mapService.toggleGeocoder(false);
     }
   }
 
