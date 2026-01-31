@@ -980,8 +980,8 @@ body {
   position: fixed !important;
   top: 80px !important;
   left: 20px !important;
-  width: 300px !important;
-  min-width: 300px !important;
+  width: 350px !important;
+  min-width: 350px !important;
   height: auto !important;
   min-height: 40px !important;
   z-index: 10000 !important;
@@ -998,7 +998,27 @@ body {
   height: 40px !important;
   padding: 0 40px 0 10px !important;
   border: none !important;
-  font-size: 14px !important;
+  font-size: 13px !important;
+}
+
+/* Icône de recherche (loupe) - positionnée à droite */
+.mapboxgl-ctrl-geocoder--icon {
+  position: absolute !important;
+  top: 50% !important;
+  left: auto !important;
+  right: 10px !important;
+  transform: translateY(-50%) !important;
+}
+
+/* Icône de chargement */
+.mapboxgl-ctrl-geocoder--icon-loading {
+  right: 10px !important;
+  left: auto !important;
+}
+
+/* Bouton clear (X) */
+.mapboxgl-ctrl-geocoder--button {
+  right: 35px !important;
 }
 
 .mapboxgl-ctrl-geocoder .suggestions {
@@ -1076,6 +1096,7 @@ body {
     left: 10px !important;
     right: 10px !important;
     width: auto !important;
+    min-width: auto !important;
     max-width: calc(100vw - 20px) !important;
   }
 
