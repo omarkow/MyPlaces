@@ -157,8 +157,10 @@ export class FormManager {
         this._renderExistingImages();
       }
 
-      // Gérer l'upload de nouvelles images
-      this._setupImageUpload();
+      // IMPORTANT : Gérer l'upload APRÈS avoir créé le HTML
+      setTimeout(() => {
+        this._setupImageUpload();
+      }, 50);
     }
 
     // Geocoder pour édition (corriger l'adresse)
@@ -242,19 +244,32 @@ export class FormManager {
    */
   _setupImageUpload() {
     const fileInput = document.getElementById('file-upload');
-    if (!fileInput) return;
+    if (!fileInput) {
+      console.warn('⚠️ Input file-upload introuvable');
+      return;
+    }
 
-    fileInput.addEventListener('change', (e) => {
+    // Retirer l'ancien listener s'il existe
+    const newFileInput = fileInput.cloneNode(true);
+    fileInput.parentNode.replaceChild(newFileInput, fileInput);
+
+    // Ajouter le nouveau listener
+    newFileInput.addEventListener('change', (e) => {
+      console.log('📸 Upload déclenché, fichiers:', e.target.files.length);
       const files = e.target.files;
       if (!files || files.length === 0) return;
 
       const previewContainer = document.getElementById('preview-thumbnails');
-      if (!previewContainer) return;
+      if (!previewContainer) {
+        console.error('❌ Preview container introuvable');
+        return;
+      }
 
       // Activer le mode édition pour afficher les croix
       previewContainer.classList.add('edit-mode');
 
       Array.from(files).forEach((file) => {
+        console.log('🖼️ Traitement image:', file.name);
         const reader = new FileReader();
         reader.onload = (event) => {
           const wrapper = createElement('div', { className: 'photo-preview-wrapper' });
@@ -272,6 +287,7 @@ export class FormManager {
               e.stopPropagation();
               if (confirm('Supprimer cette photo ?')) {
                 wrapper.remove();
+                console.log('🗑️ Photo preview supprimée');
               }
             }
           });
@@ -279,10 +295,13 @@ export class FormManager {
           wrapper.appendChild(img);
           wrapper.appendChild(deleteBtn);
           previewContainer.appendChild(wrapper);
+          console.log('✅ Photo ajoutée au preview');
         };
         reader.readAsDataURL(file);
       });
     });
+
+    console.log('✅ Upload listener configuré');
   }
 
   /**
