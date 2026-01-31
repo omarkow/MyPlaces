@@ -85,12 +85,30 @@ export class MapService {
     const existing = document.querySelector('.mapboxgl-ctrl-geocoder');
     if (existing) {
       console.log('✅ Geocoder déjà présent sur la carte');
+      // Le forcer à être visible
+      existing.style.display = 'block';
+      existing.style.visibility = 'visible';
+      existing.style.opacity = '1';
       return;
     }
 
     // Ajouter le contrôle
     this.map.addControl(this.geocoder, 'top-left');
     console.log('✅ Geocoder ajouté à la carte');
+    
+    // Vérifier après ajout
+    setTimeout(() => {
+      const geocoderEl = document.querySelector('.mapboxgl-ctrl-geocoder');
+      if (geocoderEl) {
+        console.log('✅ Geocoder confirmé dans le DOM');
+        geocoderEl.style.display = 'block';
+        geocoderEl.style.visibility = 'visible';
+        console.log('Geocoder display:', geocoderEl.style.display);
+        console.log('Geocoder visibility:', geocoderEl.style.visibility);
+      } else {
+        console.error('❌ Geocoder pas trouvé dans le DOM après ajout !');
+      }
+    }, 100);
   }
 
   /**
