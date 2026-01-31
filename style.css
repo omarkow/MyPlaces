@@ -972,6 +972,28 @@ body {
   border: 1px solid rgba(184, 134, 11, 0.2);
 }
 
+/* Geocoder principal sur la carte - FORCER L'AFFICHAGE */
+.mapboxgl-ctrl-geocoder {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 10 !important;
+  width: 300px !important;
+  max-width: 90vw !important;
+}
+
+.mapboxgl-ctrl-top-left {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.mapboxgl-ctrl-top-left .mapboxgl-ctrl-geocoder {
+  margin: 10px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+}
+
 /* Bouton admin add - CACHÉ PAR DÉFAUT */
 .btn-admin-add {
   display: none; /* Le geocoder suffit */
