@@ -187,7 +187,6 @@ export class MapService {
     el.addEventListener('mouseleave', () => {
       popup.remove();
     });
-    });
 
     // Stocker le marqueur
     this.markers[id] = {
