@@ -1,0 +1,286 @@
+/* ============================================
+   Panel Gestion Membres — styles complets
+   ============================================ */
+
+/* --- Bouton owner dans la navbar --- */
+.btn-members-owner {
+  position: relative;
+  background: #2d6a4f;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+}
+.btn-members-owner:hover {
+  background: #1b4332;
+}
+
+/* Badge rouge (demandes en attente) */
+.btn-members-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4444;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); }
+  50%      { box-shadow: 0 0 0 5px rgba(239,68,68,0); }
+}
+
+/* --- Bouton "Demander à rejoindre" (navbar) --- */
+.btn-request-join {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.2s ease, opacity 0.2s;
+}
+.btn-request-join:hover {
+  background: #4338ca;
+}
+/* État "En attente…" — grisé, non-cliquable */
+.btn-request-join.pending {
+  background: #9ca3af;
+  cursor: default;
+  opacity: 0.85;
+}
+
+/* ============================================
+   Modal
+   ============================================ */
+
+.members-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+}
+.members-modal-overlay.open { display: flex; }
+
+.members-modal {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 540px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+
+/* Header */
+.members-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 14px;
+  flex-shrink: 0;
+}
+.members-modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #1f2937;
+  font-weight: 700;
+}
+.btn-members-modal-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #6b7280;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.btn-members-modal-close:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+/* Body scrollable */
+.members-modal-body {
+  padding: 4px 24px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ============================================
+   Sections communes
+   ============================================ */
+
+.members-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6b7280;
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.members-section-title .section-count {
+  background: #e5e7eb;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+.members-section-title.pending-title .section-count {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.members-section-separator {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 16px 0;
+}
+
+.members-empty-msg {
+  font-size: 13px;
+  color: #9ca3af;
+  font-style: italic;
+  padding: 6px 0;
+}
+
+/* ============================================
+   Carte utilisateur
+   ============================================ */
+
+.member-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 8px;
+  transition: border-color 0.15s;
+}
+.member-card:last-child { margin-bottom: 0; }
+.member-card:hover { border-color: #d1d5db; }
+
+.member-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #d1d5db;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.member-info { flex: 1; min-width: 0; }
+.member-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.member-email {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.member-role-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.member-role-badge.owner { background: #d1fae5; color: #065f46; }
+.member-role-badge.editor { background: #dbeafe; color: #1e40af; }
+
+/* ============================================
+   Boutons d'action (dans les cartes)
+   ============================================ */
+
+.member-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.btn-member-action {
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.btn-member-action:active { transform: scale(0.95); }
+
+.btn-member-action.approve { background: #d1fae5; color: #065f46; }
+.btn-member-action.approve:hover { background: #a7f3d0; }
+
+.btn-member-action.reject { background: #fee2e2; color: #991b1b; }
+.btn-member-action.reject:hover { background: #fecaca; }
+
+.btn-member-action.remove { background: #f3f4f6; color: #6b7280; }
+.btn-member-action.remove:hover { background: #fee2e2; color: #991b1b; }
+
+/* Promouvoir editor → owner */
+.btn-member-action.promote { background: #ede9fe; color: #6d28d9; }
+.btn-member-action.promote:hover { background: #ddd6fe; }
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 480px) {
+  .members-modal {
+    max-height: 90vh;
+    border-radius: 12px 12px 0 0;
+    align-self: flex-end;
+  }
+  .member-card { flex-wrap: wrap; }
+  .member-actions {
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: 6px;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 4px;
+  }
+}

@@ -1,0 +1,56 @@
+/* ============================================
+   MARQUEURS CLUSTERS
+   ============================================ */
+
+.marker-cluster {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.marker-cluster:hover {
+  transform: scale(1.15);
+}
+
+.marker-cluster-icon {
+  font-size: 32px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.marker-cluster-badge {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background: #ef4444;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  min-width: 24px;
+  text-align: center;
+  
+  /* Animation pulsation */
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.85;
+  }
+}
+
+/* Badge plus grand pour beaucoup de points */
+.marker-cluster-badge.large {
+  font-size: 14px;
+  padding: 6px 10px;
+  min-width: 32px;
+}

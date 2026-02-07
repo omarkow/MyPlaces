@@ -1,0 +1,335 @@
+/* ============================================
+   PAGE D'ACCUEIL (LANDING PAGE)
+   ============================================ */
+
+.home-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #ffffff; /* Fond blanc opaque */
+  z-index: 100;
+  overflow-y: auto;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  padding-top: 80px;
+  box-sizing: border-box;
+}
+
+.home-overlay.visible {
+  opacity: 1;
+}
+
+.home-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* En-tête */
+.home-header {
+  text-align: center;
+  margin-bottom: 60px;
+  padding: 20px;
+}
+
+.home-logo {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.home-title {
+  font-size: 48px;
+  font-weight: 700;
+  color: #b8860b;
+  margin: 0 0 10px 0;
+  letter-spacing: -1px;
+}
+
+.home-subtitle {
+  font-size: 18px;
+  color: #666;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Section communautés */
+.home-communities-section {
+  margin-bottom: 60px;
+  text-align: center; /* Centrer le titre */
+}
+
+.home-section-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  margin: 0 0 40px 0;
+}
+
+/* Grille des communautés */
+.home-communities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+/* Carte de communauté */
+.community-card {
+  position: relative;
+  background: white;
+  border: 2px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.community-card:hover {
+  border-color: #b8860b;
+  box-shadow: 0 8px 24px rgba(184, 134, 11, 0.15);
+}
+
+.community-card-color {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+}
+
+.community-card-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.community-card-content {
+  position: relative;
+  z-index: 1;
+}
+
+.community-card-name {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.community-card-description {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Message vide */
+.home-empty-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+  font-size: 16px;
+}
+
+/* Section création */
+.home-create-section {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.home-actions-section {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.btn-create-community-home {
+  padding: 14px 32px;
+  background: #b8860b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.2);
+}
+
+.btn-create-community-home:hover {
+  background: #9a6f09;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(184, 134, 11, 0.3);
+}
+
+/* Section inscription */
+.home-signup-box {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 30px;
+  background: linear-gradient(135deg, #fff8e6 0%, #ffffff 100%);
+  border: 2px solid #b8860b;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.1);
+}
+
+.btn-signup-home {
+  padding: 14px 32px;
+  background: #b8860b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.2);
+}
+
+.btn-signup-home:hover {
+  background: #9a6f09;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(184, 134, 11, 0.3);
+}
+
+/* Bouton rejoindre la communauté (dans les cartes de la landing page uniquement) */
+.community-card .btn-join-community {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background: white;
+  color: #b8860b;
+  border: 2px solid #b8860b;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.community-card .btn-join-community:hover {
+  background: #b8860b;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.2);
+}
+
+.community-card .btn-join-community.pending {
+  background: #f5f5f5;
+  color: #666;
+  border-color: #ddd;
+  cursor: not-allowed;
+}
+
+.community-card .btn-join-community.member {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+  cursor: default;
+}
+
+.community-card .btn-join-community.member:hover {
+  background: #059669;
+  border-color: #059669;
+  transform: none;
+}
+
+/* Footer */
+.home-footer {
+  text-align: center;
+  padding: 20px 0;
+  color: #999;
+  font-size: 14px;
+  margin-top: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .home-container {
+    padding: 30px 15px;
+  }
+
+  .home-logo {
+    font-size: 60px;
+  }
+
+  .home-title {
+    font-size: 36px;
+  }
+
+  .home-subtitle {
+    font-size: 16px;
+  }
+
+  .home-section-title {
+    font-size: 24px;
+    margin-bottom: 30px;
+  }
+
+  .home-communities-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .community-card {
+    padding: 20px;
+  }
+
+  .btn-create-community-home {
+    width: 100%;
+    padding: 12px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-title {
+    font-size: 28px;
+  }
+
+  .home-subtitle {
+    font-size: 14px;
+  }
+
+  .community-card-name {
+    font-size: 18px;
+  }
+}
+
+/* Bouton rejoindre dans la navbar (pas position absolute) */
+.navbar-right .btn-join-community {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.2s ease, opacity 0.2s;
+  margin-right: 10px;
+}
+
+.navbar-right .btn-join-community:hover {
+  background: #4338ca;
+}
+
+.navbar-right .btn-join-community:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+}

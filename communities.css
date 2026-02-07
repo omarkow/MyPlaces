@@ -1,0 +1,80 @@
+/* ============================================
+   INTERFACE COMMUNAUTÉS
+   ============================================ */
+
+/* Dropdown des communautés */
+.community-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.community-dropdown-btn {
+  padding: 10px 15px;
+  background: white;
+  border: 1px solid rgba(184, 134, 11, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.community-dropdown-btn:hover {
+  background: #f9f9f9;
+  border-color: #b8860b;
+}
+
+.community-dropdown-list {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  min-width: 250px;
+  background: white;
+  border: 1px solid rgba(184, 134, 11, 0.3);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 9999;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.community-dropdown-item {
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.community-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.community-dropdown-item:hover {
+  background: #f9f9f9;
+}
+
+.community-create-btn {
+  color: #b8860b;
+  font-weight: bold;
+}
+
+.community-create-btn:hover {
+  background: #fff8e6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .community-dropdown-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .community-dropdown-list {
+    min-width: 200px;
+    right: 0;
+    left: auto;
+  }
+}
